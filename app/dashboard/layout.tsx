@@ -7,13 +7,14 @@ import { useRouter, usePathname } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { LayoutDashboard, FileText, Send, Inbox, LogOut, Menu, X } from "lucide-react"
+import axios from "axios"
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const [user, setUser] = useState<{ username: string; id: string } | null>(null)
+  const [user, setUser] = useState<{ username: string } | null>(null)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const router = useRouter()
   const pathname = usePathname()
@@ -34,9 +35,20 @@ export default function DashboardLayout({
     }
   }, [router])
 
-  const handleLogout = () => {
-    localStorage.removeItem("user")
-    router.push("/")
+  const handleLogout = async () => {
+    try {
+      // Call logout API route
+      await axios.post("/api/auth/logout", {}, { withCredentials: true })
+
+      // Clear user from localStorage
+      localStorage.removeItem("user")
+      router.push("/")
+    } catch (error) {
+      console.error("Logout failed:", error)
+      // Force logout even if API call fails
+      localStorage.removeItem("user")
+      router.push("/")
+    }
   }
 
   if (!user) {

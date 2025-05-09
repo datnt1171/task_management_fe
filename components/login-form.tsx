@@ -8,27 +8,52 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import axios from "axios"
 
 export default function LoginForm() {
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
+    setIsLoading(true)
 
     // Simple validation
     if (!username || !password) {
       setError("Username and password are required")
+      setIsLoading(false)
       return
     }
 
-    // In a real app, you would validate credentials against a database
-    // For this demo, we'll just simulate a successful login
-    localStorage.setItem("user", JSON.stringify({ username, id: "user-123" }))
-    router.push("/dashboard")
+    try {
+      // Call our login API route
+      const response = await axios.post(
+        "/api/auth/login",
+        {
+          username,
+          password,
+        },
+        {
+          withCredentials: true,
+        },
+      )
+
+      if (response.data.success) {
+        // Store user info in localStorage (non-sensitive data only)
+        localStorage.setItem("user", JSON.stringify({ username: response.data.user.username }))
+        router.push("/dashboard")
+      } else {
+        setError(response.data.error || "Login failed")
+      }
+    } catch (err: any) {
+      setError(err.response?.data?.error || "Authentication failed. Please check your credentials.")
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -47,6 +72,7 @@ export default function LoginForm() {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               placeholder="Enter your username"
+              disabled={isLoading}
             />
           </div>
           <div className="space-y-2">
@@ -57,11 +83,12 @@ export default function LoginForm() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter your password"
+              disabled={isLoading}
             />
           </div>
           {error && <p className="text-sm text-red-500">{error}</p>}
-          <Button type="submit" className="w-full">
-            Login
+          <Button type="submit" className="w-full" disabled={isLoading}>
+            {isLoading ? "Logging in..." : "Login"}
           </Button>
         </form>
       </CardContent>
