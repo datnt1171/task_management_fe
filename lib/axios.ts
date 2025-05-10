@@ -2,7 +2,7 @@ import axios from "axios"
 
 // Create an axios instance with default config
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000",
+  baseURL: process.env.API_URL,
   headers: {
     "Content-Type": "application/json",
   },
@@ -21,7 +21,7 @@ api.interceptors.response.use(
 
       try {
         // Call our refresh token API route
-        await axios.get("/api/auth/refresh", { withCredentials: true })
+        await axios.get("auth/refresh", { withCredentials: true })
 
         // Retry the original request
         return api(originalRequest)
