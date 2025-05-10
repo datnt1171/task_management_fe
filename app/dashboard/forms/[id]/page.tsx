@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -11,74 +11,56 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
-import { ArrowLeft, Save, Send } from "lucide-react"
+import { ArrowLeft, Save, Send, Loader2 } from "lucide-react"
 import Link from "next/link"
+import axios from "axios"
 
-// Mock form templates data
-const formTemplates = {
-  "1": {
-    id: 1,
-    title: "Project Update",
-    description: "Weekly project status update form",
-    fields: [
-      { id: "title", label: "Project Title", type: "text", required: true },
-      {
-        id: "status",
-        label: "Project Status",
-        type: "select",
-        options: ["On Track", "At Risk", "Delayed", "Completed"],
-        required: true,
-      },
-      { id: "progress", label: "Progress (0-100%)", type: "number", required: true },
-      { id: "achievements", label: "Key Achievements", type: "textarea", required: true },
-      { id: "challenges", label: "Challenges Faced", type: "textarea", required: false },
-      { id: "next_steps", label: "Next Steps", type: "textarea", required: true },
-      { id: "support", label: "Support Needed", type: "textarea", required: false },
-      { id: "attachments", label: "Include Attachments", type: "checkbox", required: false },
-    ],
-  },
-  "2": {
-    id: 2,
-    title: "Expense Report",
-    description: "Submit your expenses for reimbursement",
-    fields: [
-      { id: "date", label: "Date of Expense", type: "date", required: true },
-      {
-        id: "category",
-        label: "Expense Category",
-        type: "select",
-        options: ["Travel", "Meals", "Office Supplies", "Software", "Other"],
-        required: true,
-      },
-      { id: "amount", label: "Amount", type: "number", required: true },
-      { id: "currency", label: "Currency", type: "select", options: ["USD", "EUR", "GBP", "JPY"], required: true },
-      { id: "description", label: "Description", type: "textarea", required: true },
-      { id: "receipt", label: "Receipt Attached", type: "checkbox", required: true },
-    ],
-  },
+interface FormField {
+  id: string
+  label: string
+  type: string
+  required: boolean
+  options?: string[]
+}
+
+interface FormTemplate {
+  id: number
+  title: string
+  description: string
+  fields: FormField[]
 }
 
 export default function FormPage({ params }: { params: { id: string } }) {
   const router = useRouter()
-  const formTemplate = formTemplates[params.id as keyof typeof formTemplates]
-
+  const [formTemplate, setFormTemplate] = useState<FormTemplate | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [formValues, setFormValues] = useState<Record<string, any>>({})
   const [assignee, setAssignee] = useState("")
 
-  if (!formTemplate) {
-    return (
-      <div className="flex flex-col items-center justify-center py-12 text-center">
-        <h3 className="text-lg font-medium">Template not found</h3>
-        <p className="text-muted-foreground mt-2">The requested form template does not exist.</p>
-        <Link href="/dashboard/forms">
-          <Button variant="outline" className="mt-4">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Templates
-          </Button>
-        </Link>
-      </div>
-    )
-  }
+  useEffect(() => {
+    const fetchFormTemplate = async () => {
+      try {
+        setIsLoading(true)
+        setError(null)
+        const response = await axios.get("/api/forms")
+        const templates = response.data.formTemplates
+
+        if (templates[params.id]) {
+          setFormTemplate(templates[params.id])
+        } else {
+          setError("Form template not found")
+        }
+      } catch (err: any) {
+        console.error("Failed to fetch form template:", err)
+        setError(err.response?.data?.error || "Failed to load form template")
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchFormTemplate()
+  }, [params.id])
 
   const handleInputChange = (fieldId: string, value: any) => {
     setFormValues({
@@ -87,19 +69,37 @@ export default function FormPage({ params }: { params: { id: string } }) {
     })
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    // In a real app, you would send this data to your backend
-    console.log("Form values:", formValues)
-    console.log("Assigned to:", assignee)
+    if (!assignee) {
+      alert("Please select an assignee")
+      return
+    }
 
-    // Simulate saving the task
-    alert("Task created successfully!")
-    router.push("/dashboard/sent")
+    try {
+      if (!formTemplate) {
+        throw new Error("Form template is not loaded");
+      }
+      const response = await axios.post("/api/tasks/submit", {
+        processId: formTemplate.id,
+        assignee,
+        formValues,
+      })
+
+      if (response.data.success) {
+        alert("Task created successfully!")
+        router.push("/dashboard/sent")
+      } else {
+        alert(response.data.error || "Failed to create task")
+      }
+    } catch (err: any) {
+      console.error("Failed to submit task:", err)
+      alert(err.response?.data?.error || "Failed to create task")
+    }
   }
 
-  const renderField = (field: any) => {
+  const renderField = (field: FormField) => {
     switch (field.type) {
       case "text":
         return (
@@ -146,7 +146,7 @@ export default function FormPage({ params }: { params: { id: string } }) {
               <SelectValue placeholder="Select an option" />
             </SelectTrigger>
             <SelectContent>
-              {field.options.map((option: string) => (
+              {(field.options || []).map((option: string) => (
                 <SelectItem key={option} value={option}>
                   {option}
                 </SelectItem>
@@ -173,6 +173,30 @@ export default function FormPage({ params }: { params: { id: string } }) {
       default:
         return null
     }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mb-4" />
+        <p className="text-muted-foreground">Loading form template...</p>
+      </div>
+    )
+  }
+
+  if (error || !formTemplate) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 text-center">
+        <h3 className="text-lg font-medium">Template not found</h3>
+        <p className="text-muted-foreground mt-2">{error || "The requested form template does not exist."}</p>
+        <Link href="/dashboard/forms">
+          <Button variant="outline" className="mt-4">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Templates
+          </Button>
+        </Link>
+      </div>
+    )
   }
 
   return (

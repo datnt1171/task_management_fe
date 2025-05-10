@@ -1,26 +1,53 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { FileText, Plus, Search } from "lucide-react"
+import { FileText, Plus, Search, Loader2 } from "lucide-react"
+import axios from "axios"
 
-// Mock data for form templates
-const formTemplates = [
-  { id: 1, title: "Project Update", description: "Weekly project status update form", fields: 8 },
-  { id: 2, title: "Expense Report", description: "Submit your expenses for reimbursement", fields: 12 },
-  { id: 3, title: "Leave Request", description: "Request time off or vacation days", fields: 6 },
-  { id: 4, title: "Bug Report", description: "Report issues or bugs in the system", fields: 10 },
-  { id: 5, title: "Client Feedback", description: "Collect feedback from clients", fields: 15 },
-  { id: 6, title: "Performance Review", description: "Employee performance evaluation form", fields: 20 },
-]
+interface FormField {
+  id: string
+  label: string
+  type: string
+  required: boolean
+  options?: string[]
+}
+
+interface FormTemplate {
+  id: number
+  title: string
+  description: string
+  fields: FormField[]
+}
 
 export default function FormsPage() {
   const [searchQuery, setSearchQuery] = useState("")
+  const [formTemplates, setFormTemplates] = useState<Record<string, FormTemplate>>({})
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  const filteredTemplates = formTemplates.filter(
+  useEffect(() => {
+    const fetchFormTemplates = async () => {
+      try {
+        setIsLoading(true)
+        setError(null)
+        const response = await axios.get("/api/forms")
+        setFormTemplates(response.data.formTemplates)
+      } catch (err: any) {
+        console.error("Failed to fetch form templates:", err)
+        setError(err.response?.data?.error || "Failed to load form templates")
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchFormTemplates()
+  }, [])
+
+  const filteredTemplates = Object.values(formTemplates).filter(
     (template) =>
       template.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       template.description.toLowerCase().includes(searchQuery.toLowerCase()),
@@ -54,31 +81,46 @@ export default function FormsPage() {
         </Button>
       </div>
 
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {filteredTemplates.map((template) => (
-          <Card key={template.id} className="overflow-hidden">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center">
-                <FileText className="mr-2 h-5 w-5 text-muted-foreground" />
-                {template.title}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">{template.description}</p>
-              <p className="text-sm mt-2">{template.fields} fields</p>
-            </CardContent>
-            <CardFooter className="bg-muted/50 pt-3">
-              <Link href={`/dashboard/forms/${template.id}`} className="w-full">
-                <Button variant="outline" className="w-full">
-                  Use Template
-                </Button>
-              </Link>
-            </CardFooter>
-          </Card>
-        ))}
-      </div>
+      {isLoading ? (
+        <div className="flex flex-col items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mb-4" />
+          <p className="text-muted-foreground">Loading form templates...</p>
+        </div>
+      ) : error ? (
+        <div className="flex flex-col items-center justify-center py-12 text-center">
+          <h3 className="text-lg font-medium text-destructive">Error loading templates</h3>
+          <p className="text-muted-foreground mt-2">{error}</p>
+          <Button variant="outline" className="mt-4" onClick={() => window.location.reload()}>
+            Try Again
+          </Button>
+        </div>
+      ) : (
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {filteredTemplates.map((template) => (
+            <Card key={template.id} className="overflow-hidden">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center">
+                  <FileText className="mr-2 h-5 w-5 text-muted-foreground" />
+                  {template.title}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">{template.description}</p>
+                <p className="text-sm mt-2">{template.fields.length} fields</p>
+              </CardContent>
+              <CardFooter className="bg-muted/50 pt-3">
+                <Link href={`/dashboard/forms/${template.id}`} className="w-full">
+                  <Button variant="outline" className="w-full">
+                    Use Template
+                  </Button>
+                </Link>
+              </CardFooter>
+            </Card>
+          ))}
+        </div>
+      )}
 
-      {filteredTemplates.length === 0 && (
+      {!isLoading && !error && filteredTemplates.length === 0 && (
         <div className="flex flex-col items-center justify-center py-12 text-center">
           <FileText className="h-12 w-12 text-muted-foreground mb-4" />
           <h3 className="text-lg font-medium">No templates found</h3>
