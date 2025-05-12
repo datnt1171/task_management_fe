@@ -2,57 +2,71 @@
 
 import type React from "react"
 
-import { useEffect, useState } from "react"
-import { useRouter, usePathname } from "next/navigation"
+import { useState, useEffect } from "react"
+import { usePathname, useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { LayoutDashboard, FileText, Send, Inbox, LogOut, Menu, X } from "lucide-react"
+import { LayoutDashboard, FileText, Send, Inbox, LogOut, Menu, X, Loader2 } from "lucide-react"
+import { getCurrentUser } from "@/lib/api-service"
 import axios from "axios"
+
+interface User {
+  id: number
+  username: string
+  first_name?: string
+  last_name?: string
+  department?: {
+    id: number
+    name: string
+  }
+  role?: {
+    id: number
+    name: string
+  }
+}
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const [user, setUser] = useState<{ username: string } | null>(null)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const router = useRouter()
+  const [user, setUser] = useState<User | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
   const pathname = usePathname()
+  const router = useRouter()
 
   useEffect(() => {
-    // Check if user is logged in
-    const storedUser = localStorage.getItem("user")
-    if (!storedUser) {
-      router.push("/")
-      return
-    }
+    fetchCurrentUser()
+  }, [])
 
+  const fetchCurrentUser = async () => {
     try {
-      setUser(JSON.parse(storedUser))
-    } catch (e) {
-      localStorage.removeItem("user")
-      router.push("/")
-    }
-  }, [router])
-
-  const handleLogout = async () => {
-    try {
-      // Call logout API route
-      await axios.post("/api/auth/logout", {}, { withCredentials: true })
-
-      // Clear user from localStorage
-      localStorage.removeItem("user")
-      router.push("/")
+      const response = await getCurrentUser()
+      setUser(response.data)
     } catch (error) {
-      console.error("Logout failed:", error)
-      // Force logout even if API call fails
-      localStorage.removeItem("user")
-      router.push("/")
+      console.error("Error fetching user:", error)
+      // If we can't get the user, we'll use a default or fallback
+      const storedUser = localStorage.getItem("user")
+      if (storedUser) {
+        setUser(JSON.parse(storedUser))
+      }
+    } finally {
+      setIsLoading(false)
     }
   }
 
-  if (!user) {
-    return null // Will redirect in useEffect
+  const handleLogout = async () => {
+    try {
+      await axios.post("/api/auth/logout")
+      localStorage.removeItem("user")
+      router.push("/login")
+    } catch (error) {
+      console.error("Error logging out:", error)
+      // Even if the API call fails, we'll still clear local storage and redirect
+      localStorage.removeItem("user")
+      router.push("/login")
+    }
   }
 
   const navItems = [
@@ -61,6 +75,14 @@ export default function DashboardLayout({
     { href: "/dashboard/sent", label: "Sent Tasks", icon: <Send className="mr-2 h-4 w-4" /> },
     { href: "/dashboard/received", label: "Received Tasks", icon: <Inbox className="mr-2 h-4 w-4" /> },
   ]
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    )
+  }
 
   return (
     <div className="flex min-h-screen bg-gray-50">
@@ -103,10 +125,11 @@ export default function DashboardLayout({
           <div className="flex-shrink-0 flex border-t border-gray-200 p-4">
             <div className="flex items-center">
               <div>
-                <p className="text-sm font-medium text-gray-700">{user.username}</p>
+                <p className="text-sm font-medium text-gray-700">{user?.username || "User"}</p>
+                <p className="text-xs text-gray-500">{user?.department?.name || user?.role?.name || ""}</p>
               </div>
             </div>
-            <Button variant="ghost" className="ml-auto" onClick={handleLogout} size="sm">
+            <Button variant="ghost" className="ml-auto" size="sm" onClick={handleLogout}>
               <LogOut className="h-4 w-4 mr-2" />
               Logout
             </Button>
@@ -144,10 +167,11 @@ export default function DashboardLayout({
             <div className="flex-shrink-0 flex border-t border-gray-200 p-4">
               <div className="flex items-center">
                 <div>
-                  <p className="text-sm font-medium text-gray-700">{user.username}</p>
+                  <p className="text-sm font-medium text-gray-700">{user?.username || "User"}</p>
+                  <p className="text-xs text-gray-500">{user?.department?.name || user?.role?.name || ""}</p>
                 </div>
               </div>
-              <Button variant="ghost" className="ml-auto" onClick={handleLogout} size="sm">
+              <Button variant="ghost" className="ml-auto" size="sm" onClick={handleLogout}>
                 <LogOut className="h-4 w-4 mr-2" />
                 Logout
               </Button>

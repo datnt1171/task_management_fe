@@ -6,51 +6,57 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { FileText, Plus, Search, Loader2 } from "lucide-react"
-import axios from "axios"
+import { getProcesses } from "@/lib/api-service"
 
-interface FormField {
-  id: string
-  label: string
-  type: string
-  required: boolean
-  options?: string[]
-}
-
-interface FormTemplate {
+interface Process {
   id: number
-  title: string
+  name: string
   description: string
-  fields: FormField[]
+  fields: Array<{
+    id: number
+    name: string
+    field_type: string
+    required: boolean
+    options: string[] | null
+  }>
+  actions: Array<{
+    id: number
+    name: string
+    description: string
+    action_type: {
+      id: number
+      name: string
+    }
+  }>
 }
 
 export default function FormsPage() {
   const [searchQuery, setSearchQuery] = useState("")
-  const [formTemplates, setFormTemplates] = useState<Record<string, FormTemplate>>({})
+  const [processes, setProcesses] = useState<Process[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    const fetchFormTemplates = async () => {
-      try {
-        setIsLoading(true)
-        setError(null)
-        const response = await axios.get("/api/forms")
-        setFormTemplates(response.data.formTemplates)
-      } catch (err: any) {
-        console.error("Failed to fetch form templates:", err)
-        setError(err.response?.data?.error || "Failed to load form templates")
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    fetchFormTemplates()
+    fetchProcesses()
   }, [])
 
-  const filteredTemplates = Object.values(formTemplates).filter(
-    (template) =>
-      template.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      template.description.toLowerCase().includes(searchQuery.toLowerCase()),
+  const fetchProcesses = async () => {
+    setIsLoading(true)
+    try {
+      const response = await getProcesses()
+      setProcesses(response.data.results)
+    } catch (err: any) {
+      console.error("Error fetching processes:", err)
+      setError(err.response?.data?.error || "Failed to load form templates")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const filteredProcesses = processes.filter(
+    (process) =>
+      process.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (process.description && process.description.toLowerCase().includes(searchQuery.toLowerCase())),
   )
 
   return (
@@ -90,26 +96,30 @@ export default function FormsPage() {
         <div className="flex flex-col items-center justify-center py-12 text-center">
           <h3 className="text-lg font-medium text-destructive">Error loading templates</h3>
           <p className="text-muted-foreground mt-2">{error}</p>
-          <Button variant="outline" className="mt-4" onClick={() => window.location.reload()}>
+          <Button variant="outline" className="mt-4" onClick={fetchProcesses}>
             Try Again
           </Button>
         </div>
       ) : (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {filteredTemplates.map((template) => (
-            <Card key={template.id} className="overflow-hidden">
+          {filteredProcesses.map((process) => (
+            <Card key={process.id} className="overflow-hidden">
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center">
                   <FileText className="mr-2 h-5 w-5 text-muted-foreground" />
-                  {template.title}
+                  {process.name}
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-muted-foreground">{template.description}</p>
-                <p className="text-sm mt-2">{template.fields.length} fields</p>
+                <p className="text-sm text-muted-foreground">
+                  {process.description || `Form template for ${process.name}`}
+                </p>
+                <div className="mt-2">
+                  <p className="text-xs text-muted-foreground">{process.fields.length} fields</p>
+                </div>
               </CardContent>
               <CardFooter className="bg-muted/50 pt-3">
-                <Link href={`/dashboard/forms/${template.id}`} className="w-full">
+                <Link href={`/dashboard/forms/${process.id}`} className="w-full">
                   <Button variant="outline" className="w-full">
                     Use Template
                   </Button>
@@ -120,7 +130,7 @@ export default function FormsPage() {
         </div>
       )}
 
-      {!isLoading && !error && filteredTemplates.length === 0 && (
+      {!isLoading && !error && filteredProcesses.length === 0 && (
         <div className="flex flex-col items-center justify-center py-12 text-center">
           <FileText className="h-12 w-12 text-muted-foreground mb-4" />
           <h3 className="text-lg font-medium">No templates found</h3>

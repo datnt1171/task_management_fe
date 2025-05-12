@@ -1,96 +1,156 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { ArrowLeft, Calendar, CheckCircle, Download, User, Loader2, Clock } from "lucide-react"
+import { getTaskById, performTaskAction } from "@/lib/api-service"
 import { Textarea } from "@/components/ui/textarea"
-import { ArrowLeft, Calendar, CheckCircle, Clock, Download, MessageCircle, Send, User } from "lucide-react"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 
-// Mock task data
-const tasks = {
-  // Sent task
-  "1": {
-    id: 1,
-    title: "Weekly Project Update",
-    type: "sent",
-    formType: "Project Update",
-    status: "Completed",
-    date: "2023-05-08",
-    dueDate: "2023-05-10",
-    completedDate: "2023-05-09",
-    recipient: {
-      name: "John Doe",
-      email: "john.doe@example.com",
-    },
-    fields: [
-      { label: "Project Title", value: "Website Redesign" },
-      { label: "Project Status", value: "On Track" },
-      { label: "Progress", value: "75%" },
-      {
-        label: "Key Achievements",
-        value:
-          "Completed homepage design and navigation structure. Implemented responsive layouts for all device sizes.",
-      },
-      { label: "Challenges Faced", value: "Integration with legacy systems is taking longer than expected." },
-      { label: "Next Steps", value: "Begin implementation of user authentication system and profile pages." },
-      { label: "Support Needed", value: "Need additional resources for testing across multiple browsers." },
-    ],
-    comments: [
-      {
-        author: "John Doe",
-        date: "2023-05-09",
-        text: "All tasks completed as requested. Let me know if you need any clarification.",
-      },
-      { author: "You", date: "2023-05-09", text: "Thanks for the update. Everything looks good!" },
-    ],
-  },
-  // Received task
-  "101": {
-    id: 101,
-    title: "Monthly Team Report",
-    type: "received",
-    formType: "Team Report",
-    status: "Pending",
-    date: "2023-05-08",
-    dueDate: "2023-05-15",
-    sender: {
-      name: "Sarah Williams",
-      email: "sarah.williams@example.com",
-    },
-    fields: [
-      { label: "Team Name", value: "" },
-      { label: "Reporting Period", value: "May 2023" },
-      { label: "Key Accomplishments", value: "" },
-      { label: "Challenges", value: "" },
-      { label: "Resource Needs", value: "" },
-      { label: "Goals for Next Month", value: "" },
-    ],
-    comments: [
-      {
-        author: "Sarah Williams",
-        date: "2023-05-08",
-        text: "Please complete this report by the 15th. Include all team activities for May.",
-      },
-    ],
-  },
+interface TaskData {
+  field: {
+    id: number
+    name: string
+  }
+  value: string
+}
+
+interface ActionLog {
+  id: number
+  user: {
+    id: number
+    username: string
+  }
+  action: {
+    id: number
+    name: string
+    description: string
+  }
+  comment?: string
+  timestamp: string
+}
+
+interface Task {
+  id: number
+  title: string
+  process: {
+    id: number
+    name: string
+  }
+  state: {
+    id: number
+    name: string
+  }
+  created_by: {
+    id: number
+    username: string
+  }
+  created_at: string
+  stakeholders: Array<{
+    id: number
+    user: {
+      id: number
+      username: string
+    }
+  }>
+  task_data: TaskData[]
+  action_logs: ActionLog[]
+  available_actions?: Array<{
+    id: number
+    name: string
+    description: string
+  }>
 }
 
 export default function TaskDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter()
-  const taskId = params.id
-  const task = tasks[taskId as keyof typeof tasks]
+  const [task, setTask] = useState<Task | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [actionDialogOpen, setActionDialogOpen] = useState(false)
+  const [selectedAction, setSelectedAction] = useState<{ id: number; name: string; description: string } | null>(null)
+  const [actionComment, setActionComment] = useState("")
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const [comment, setComment] = useState("")
-  const [taskFields, setTaskFields] = useState(task?.fields || [])
+  useEffect(() => {
+    fetchTaskData()
+  }, [params.id])
 
-  if (!task) {
+  const fetchTaskData = async () => {
+    setIsLoading(true)
+    try {
+      const response = await getTaskById(params.id)
+      setTask(response.data)
+    } catch (err: any) {
+      console.error("Error fetching task:", err)
+      setError(err.response?.data?.error || "Failed to load task details")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const openActionDialog = (action: { id: number; name: string; description: string }) => {
+    setSelectedAction(action)
+    setActionComment("")
+    setActionDialogOpen(true)
+  }
+
+  const handleAction = async () => {
+    if (!task || !selectedAction) return
+
+    setIsSubmitting(true)
+    try {
+      const response = await performTaskAction(task.id, {
+        action: selectedAction.name.toLowerCase(),
+        comment: actionComment,
+      })
+
+      setTask(response.data.task)
+      setActionDialogOpen(false)
+      alert(`Task ${selectedAction.name.toLowerCase()}d successfully!`)
+    } catch (err: any) {
+      console.error("Error performing action:", err)
+      alert(err.response?.data?.error || "Failed to perform action")
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "completed":
+        return "bg-green-100 text-green-800"
+      case "pending":
+        return "bg-yellow-100 text-yellow-800"
+      case "working-on":
+        return "bg-blue-100 text-blue-800"
+      case "rejected":
+        return "bg-red-100 text-red-800"
+      case "approved":
+        return "bg-purple-100 text-purple-800"
+      default:
+        return "bg-gray-100 text-gray-800"
+    }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mb-4" />
+        <p className="text-muted-foreground">Loading task details...</p>
+      </div>
+    )
+  }
+
+  if (error || !task) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
         <h3 className="text-lg font-medium">Task not found</h3>
-        <p className="text-muted-foreground mt-2">The requested task does not exist.</p>
+        <p className="text-muted-foreground mt-2">{error || "The requested task does not exist."}</p>
         <Link href="/dashboard">
           <Button variant="outline" className="mt-4">
             <ArrowLeft className="mr-2 h-4 w-4" />
@@ -99,50 +159,6 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
         </Link>
       </div>
     )
-  }
-
-  const isReceived = task.type === "received"
-  const isPending = task.status === "Pending" || task.status === "In Progress"
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "Completed":
-        return "bg-green-100 text-green-800"
-      case "Pending":
-        return "bg-yellow-100 text-yellow-800"
-      case "In Progress":
-        return "bg-blue-100 text-blue-800"
-      case "Overdue":
-        return "bg-red-100 text-red-800"
-      default:
-        return "bg-gray-100 text-gray-800"
-    }
-  }
-
-  const handleFieldChange = (index: number, value: string) => {
-    const updatedFields = [...taskFields]
-    updatedFields[index] = { ...updatedFields[index], value }
-    setTaskFields(updatedFields)
-  }
-
-  const handleSubmitComment = () => {
-    if (!comment.trim()) return
-
-    // In a real app, you would send this to your backend
-    console.log("New comment:", comment)
-
-    // Simulate adding a comment
-    alert("Comment added successfully!")
-    setComment("")
-  }
-
-  const handleSubmitTask = () => {
-    // In a real app, you would send this to your backend
-    console.log("Task submission:", taskFields)
-
-    // Simulate submitting the task
-    alert("Task submitted successfully!")
-    router.push("/dashboard/received")
   }
 
   return (
@@ -154,9 +170,9 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">{task.title}</h1>
           <div className="flex items-center space-x-2 mt-1">
-            <Badge variant="outline">{task.formType}</Badge>
-            <Badge variant="outline" className={getStatusColor(task.status)}>
-              {task.status}
+            <Badge variant="outline">{task.process.name}</Badge>
+            <Badge variant="outline" className={getStatusColor(task.state.name)}>
+              {task.state.name}
             </Badge>
           </div>
         </div>
@@ -169,70 +185,44 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
               <CardTitle>Task Details</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              {taskFields.map((field, index) => (
-                <div key={index} className="space-y-2">
-                  <label className="text-sm font-medium">{field.label}</label>
-                  {isReceived && isPending ? (
-                    <Textarea
-                      value={field.value || ""}
-                      onChange={(e) => handleFieldChange(index, e.target.value)}
-                      placeholder={`Enter ${field.label.toLowerCase()}`}
-                      rows={field.label.includes("Achievements") || field.label.includes("Challenges") ? 4 : 2}
-                    />
-                  ) : (
-                    <div className="p-3 bg-muted rounded-md">
-                      {field.value || <span className="text-muted-foreground italic">No response provided</span>}
-                    </div>
-                  )}
+              {task.task_data.map((data) => (
+                <div key={data.field.id} className="space-y-2">
+                  <label className="text-sm font-medium">{data.field.name}</label>
+                  <div className="p-3 bg-muted rounded-md">
+                    {data.value || <span className="text-muted-foreground italic">No response provided</span>}
+                  </div>
                 </div>
               ))}
+
+              {(!task.task_data || task.task_data.length === 0) && (
+                <div className="p-3 bg-muted rounded-md text-center">
+                  <span className="text-muted-foreground italic">No field data available</span>
+                </div>
+              )}
             </CardContent>
-            {isReceived && isPending && (
-              <CardFooter>
-                <Button variant="outline" className="mr-2" onClick={() => router.back()}>
-                  Save Draft
-                </Button>
-                <Button onClick={handleSubmitTask}>
-                  <CheckCircle className="mr-2 h-4 w-4" />
-                  Submit Response
-                </Button>
-              </CardFooter>
-            )}
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle>Comments</CardTitle>
+              <CardTitle>Activity History</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              {task.comments.map((comment, index) => (
-                <div key={index} className="flex space-x-3">
-                  <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
-                    <User className="h-5 w-5 text-gray-500" />
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between">
-                      <h4 className="text-sm font-medium">{comment.author}</h4>
-                      <span className="text-xs text-muted-foreground">
-                        {new Date(comment.date).toLocaleDateString()}
-                      </span>
+            <CardContent>
+              <div className="space-y-4">
+                {task.action_logs.map((log) => (
+                  <div key={log.id} className="flex items-start">
+                    <div className="mr-2 mt-0.5">
+                      <Clock className="h-4 w-4 text-muted-foreground" />
                     </div>
-                    <p className="text-sm mt-1">{comment.text}</p>
+                    <div className="flex-1">
+                      <p className="text-sm">
+                        <span className="font-medium">{log.user.username}</span>{" "}
+                        <span className="text-muted-foreground">{log.action.description || log.action.name}</span>
+                      </p>
+                      {log.comment && <p className="text-sm mt-1 italic">"{log.comment}"</p>}
+                      <p className="text-xs text-muted-foreground">{new Date(log.timestamp).toLocaleString()}</p>
+                    </div>
                   </div>
-                </div>
-              ))}
-
-              <div className="pt-4">
-                <Textarea
-                  placeholder="Add a comment..."
-                  value={comment}
-                  onChange={(e) => setComment(e.target.value)}
-                  className="mb-2"
-                />
-                <Button onClick={handleSubmitComment} size="sm">
-                  <Send className="mr-2 h-4 w-4" />
-                  Send Comment
-                </Button>
+                ))}
               </div>
             </CardContent>
           </Card>
@@ -248,24 +238,16 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
                 <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
                 <div>
                   <p className="text-sm font-medium">Created On</p>
-                  <p className="text-sm text-muted-foreground">{new Date(task.date).toLocaleDateString()}</p>
+                  <p className="text-sm text-muted-foreground">{new Date(task.created_at).toLocaleDateString()}</p>
                 </div>
               </div>
 
-              <div className="flex items-center">
-                <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
-                <div>
-                  <p className="text-sm font-medium">Due Date</p>
-                  <p className="text-sm text-muted-foreground">{new Date(task.dueDate).toLocaleDateString()}</p>
-                </div>
-              </div>
-
-              {task.completedDate && (
+              {task.created_by && (
                 <div className="flex items-center">
-                  <CheckCircle className="h-4 w-4 mr-2 text-green-500" />
+                  <User className="h-4 w-4 mr-2 text-muted-foreground" />
                   <div>
-                    <p className="text-sm font-medium">Completed On</p>
-                    <p className="text-sm text-muted-foreground">{new Date(task.completedDate).toLocaleDateString()}</p>
+                    <p className="text-sm font-medium">Created By</p>
+                    <p className="text-sm text-muted-foreground">{task.created_by.username}</p>
                   </div>
                 </div>
               )}
@@ -273,8 +255,10 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
               <div className="flex items-center">
                 <User className="h-4 w-4 mr-2 text-muted-foreground" />
                 <div>
-                  <p className="text-sm font-medium">{isReceived ? "From" : "To"}</p>
-                  <p className="text-sm text-muted-foreground">{isReceived ? task.sender.name : task.recipient.name}</p>
+                  <p className="text-sm font-medium">Stakeholders</p>
+                  <p className="text-sm text-muted-foreground">
+                    {task.stakeholders.map((s) => s.user.username).join(", ")}
+                  </p>
                 </div>
               </div>
 
@@ -287,40 +271,64 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Actions</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {isReceived ? (
-                <>
-                  {isPending && (
-                    <Button className="w-full justify-start" variant="outline" onClick={handleSubmitTask}>
-                      <CheckCircle className="mr-2 h-4 w-4" />
-                      Mark as Complete
-                    </Button>
-                  )}
-                  <Button className="w-full justify-start" variant="outline">
-                    <MessageCircle className="mr-2 h-4 w-4" />
-                    Request Clarification
+          {task.available_actions && task.available_actions.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Available Actions</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {task.available_actions.map((action) => (
+                  <Button
+                    key={action.id}
+                    className="w-full justify-start mb-2"
+                    onClick={() => openActionDialog(action)}
+                  >
+                    <CheckCircle className="mr-2 h-4 w-4" />
+                    {action.name}
                   </Button>
+                ))}
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </div>
+
+      <Dialog open={actionDialogOpen} onOpenChange={setActionDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{selectedAction?.name} Task</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Comment (Optional)</label>
+              <Textarea
+                placeholder="Add a comment about your decision..."
+                value={actionComment}
+                onChange={(e) => setActionComment(e.target.value)}
+                rows={4}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setActionDialogOpen(false)} disabled={isSubmitting}>
+              Cancel
+            </Button>
+            <Button onClick={handleAction} disabled={isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Processing...
                 </>
               ) : (
                 <>
-                  <Button className="w-full justify-start" variant="outline">
-                    <Send className="mr-2 h-4 w-4" />
-                    Send Reminder
-                  </Button>
-                  <Button className="w-full justify-start" variant="outline">
-                    <MessageCircle className="mr-2 h-4 w-4" />
-                    Message Recipient
-                  </Button>
+                  <CheckCircle className="mr-2 h-4 w-4" />
+                  {selectedAction?.name}
                 </>
               )}
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

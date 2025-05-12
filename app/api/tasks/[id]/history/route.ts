@@ -11,7 +11,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const response = await axios.get(`${process.env.API_URL}/api/tasks/${params.id}/`, {
+    const response = await axios.get(`${process.env.API_URL}/api/tasks/${params.id}/history/`, {
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
@@ -20,9 +20,9 @@ export async function GET(request: Request, { params }: { params: { id: string }
 
     return NextResponse.json(response.data)
   } catch (error: any) {
-    console.error("Error fetching task:", error.response?.data || error.message)
+    console.error("Error fetching task history:", error.response?.data || error.message)
     return NextResponse.json(
-      { error: error.response?.data || "Failed to fetch task" },
+      { error: error.response?.data || "Failed to fetch task history" },
       { status: error.response?.status || 500 },
     )
   }

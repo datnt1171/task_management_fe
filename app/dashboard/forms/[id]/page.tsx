@@ -11,137 +11,177 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
-import { ArrowLeft, Save, Send, Loader2 } from "lucide-react"
+import { ArrowLeft, Save, Send, Loader2, Eye } from "lucide-react"
 import Link from "next/link"
-import axios from "axios"
+import { getProcessById, getUsers, createTask } from "@/lib/api-service"
 
-interface FormField {
-  id: string
-  label: string
-  type: string
+interface Field {
+  id: number
+  name: string
+  field_type: string
   required: boolean
-  options?: string[]
+  options: string[] | null
 }
 
-interface FormTemplate {
+interface Process {
   id: number
-  title: string
+  name: string
   description: string
-  fields: FormField[]
+  fields: Field[]
+}
+
+interface User {
+  id: number
+  username: string
+  department?: {
+    id: number
+    name: string
+  }
 }
 
 export default function FormPage({ params }: { params: { id: string } }) {
   const router = useRouter()
-  const [formTemplate, setFormTemplate] = useState<FormTemplate | null>(null)
+  const [process, setProcess] = useState<Process | null>(null)
+  const [users, setUsers] = useState<User[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [formValues, setFormValues] = useState<Record<string, any>>({})
+  const [title, setTitle] = useState("")
   const [assignee, setAssignee] = useState("")
+  const [showReview, setShowReview] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
-    const fetchFormTemplate = async () => {
+    async function fetchData() {
+      setIsLoading(true)
       try {
-        setIsLoading(true)
-        setError(null)
-        const response = await axios.get("/api/forms")
-        const templates = response.data.formTemplates
+        // Fetch process and users in parallel
+        const [processResponse, usersResponse] = await Promise.all([getProcessById(params.id), getUsers()])
 
-        if (templates[params.id]) {
-          setFormTemplate(templates[params.id])
-        } else {
-          setError("Form template not found")
-        }
+        setProcess(processResponse.data)
+        setUsers(usersResponse.data.results || usersResponse.data)
       } catch (err: any) {
-        console.error("Failed to fetch form template:", err)
-        setError(err.response?.data?.error || "Failed to load form template")
+        console.error("Error fetching data:", err)
+        setError(err.response?.data?.error || "Failed to load form data")
       } finally {
         setIsLoading(false)
       }
     }
 
-    fetchFormTemplate()
+    fetchData()
   }, [params.id])
 
-  const handleInputChange = (fieldId: string, value: any) => {
+  const handleInputChange = (fieldId: number, value: any) => {
     setFormValues({
       ...formValues,
       [fieldId]: value,
     })
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleReview = (e: React.FormEvent) => {
     e.preventDefault()
+
+    // Validate required fields
+    const missingFields = process?.fields
+      .filter((field) => field.required && !formValues[field.id])
+      .map((field) => field.name)
+
+    if (missingFields && missingFields.length > 0) {
+      alert(`Please fill in the following required fields: ${missingFields.join(", ")}`)
+      return
+    }
+
+    if (!title) {
+      alert("Please enter a task title")
+      return
+    }
 
     if (!assignee) {
       alert("Please select an assignee")
       return
     }
 
-    try {
-      if (!formTemplate) {
-        throw new Error("Form template is not loaded");
-      }
-      const response = await axios.post("/api/tasks/submit", {
-        processId: formTemplate.id,
-        assignee,
-        formValues,
-      })
+    setShowReview(true)
+  }
 
-      if (response.data.success) {
-        alert("Task created successfully!")
-        router.push("/dashboard/sent")
-      } else {
-        alert(response.data.error || "Failed to create task")
+  const handleSubmit = async () => {
+    if (!process || !assignee) return
+
+    setIsSubmitting(true)
+    try {
+      // Format the data for the API
+      const taskData = {
+        title,
+        process: process.id,
+        assignee: Number.parseInt(assignee),
+        fields: Object.entries(formValues).map(([key, value]) => ({
+          field_id: Number.parseInt(key),
+          value: value,
+        })),
       }
+
+      await createTask(taskData)
+      alert("Task created successfully!")
+      router.push("/dashboard/sent")
     } catch (err: any) {
-      console.error("Failed to submit task:", err)
+      console.error("Error creating task:", err)
       alert(err.response?.data?.error || "Failed to create task")
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
-  const renderField = (field: FormField) => {
-    switch (field.type) {
+  const renderField = (field: Field) => {
+    switch (field.field_type) {
       case "text":
         return (
           <Input
-            id={field.id}
+            id={`field-${field.id}`}
             value={formValues[field.id] || ""}
             onChange={(e) => handleInputChange(field.id, e.target.value)}
             required={field.required}
+            disabled={showReview}
           />
         )
       case "number":
         return (
           <Input
-            id={field.id}
+            id={`field-${field.id}`}
             type="number"
             value={formValues[field.id] || ""}
             onChange={(e) => handleInputChange(field.id, e.target.value)}
             required={field.required}
+            disabled={showReview}
           />
         )
       case "date":
         return (
           <Input
-            id={field.id}
+            id={`field-${field.id}`}
             type="date"
             value={formValues[field.id] || ""}
             onChange={(e) => handleInputChange(field.id, e.target.value)}
             required={field.required}
+            disabled={showReview}
           />
         )
       case "textarea":
         return (
           <Textarea
-            id={field.id}
+            id={`field-${field.id}`}
             value={formValues[field.id] || ""}
             onChange={(e) => handleInputChange(field.id, e.target.value)}
             required={field.required}
+            disabled={showReview}
           />
         )
       case "select":
         return (
-          <Select value={formValues[field.id] || ""} onValueChange={(value) => handleInputChange(field.id, value)}>
+          <Select
+            value={formValues[field.id] || ""}
+            onValueChange={(value) => handleInputChange(field.id, value)}
+            disabled={showReview}
+          >
             <SelectTrigger>
               <SelectValue placeholder="Select an option" />
             </SelectTrigger>
@@ -158,17 +198,28 @@ export default function FormPage({ params }: { params: { id: string } }) {
         return (
           <div className="flex items-center space-x-2">
             <Checkbox
-              id={field.id}
+              id={`field-${field.id}`}
               checked={formValues[field.id] || false}
               onCheckedChange={(checked) => handleInputChange(field.id, checked)}
+              disabled={showReview}
             />
             <label
-              htmlFor={field.id}
+              htmlFor={`field-${field.id}`}
               className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
             >
               Yes
             </label>
           </div>
+        )
+      case "file":
+        return (
+          <Input
+            id={`field-${field.id}`}
+            type="file"
+            onChange={(e) => handleInputChange(field.id, e.target.files?.[0]?.name || "")}
+            required={field.required}
+            disabled={showReview}
+          />
         )
       default:
         return null
@@ -184,7 +235,7 @@ export default function FormPage({ params }: { params: { id: string } }) {
     )
   }
 
-  if (error || !formTemplate) {
+  if (error || !process) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
         <h3 className="text-lg font-medium">Template not found</h3>
@@ -208,58 +259,126 @@ export default function FormPage({ params }: { params: { id: string } }) {
               <ArrowLeft className="h-4 w-4" />
             </Button>
           </Link>
-          <h1 className="text-2xl font-bold tracking-tight">{formTemplate.title}</h1>
+          <h1 className="text-2xl font-bold tracking-tight">{process.name}</h1>
         </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Create Task</CardTitle>
-        </CardHeader>
-        <form onSubmit={handleSubmit}>
+      {showReview ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Review Task</CardTitle>
+          </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="assignee">Assign To</Label>
-              <Select value={assignee} onValueChange={setAssignee}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a team member" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="john.doe">John Doe</SelectItem>
-                  <SelectItem value="jane.smith">Jane Smith</SelectItem>
-                  <SelectItem value="alex.johnson">Alex Johnson</SelectItem>
-                  <SelectItem value="sarah.williams">Sarah Williams</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label>Task Title</Label>
+              <div className="p-3 bg-muted rounded-md">{title}</div>
             </div>
 
-            {formTemplate.fields.map((field) => (
+            <div className="space-y-2">
+              <Label>Assignee</Label>
+              <div className="p-3 bg-muted rounded-md">
+                {users.find((u) => u.id.toString() === assignee)?.username || assignee}
+              </div>
+            </div>
+
+            {process.fields.map((field) => (
               <div key={field.id} className="space-y-2">
-                <Label htmlFor={field.id}>
-                  {field.label}
+                <Label>
+                  {field.name}
                   {field.required && <span className="text-red-500 ml-1">*</span>}
                 </Label>
-                {renderField(field)}
+                <div className="p-3 bg-muted rounded-md">
+                  {field.field_type === "checkbox"
+                    ? formValues[field.id]
+                      ? "Yes"
+                      : "No"
+                    : formValues[field.id] || <span className="text-muted-foreground italic">No value provided</span>}
+                </div>
               </div>
             ))}
           </CardContent>
           <CardFooter className="flex justify-between">
-            <Button variant="outline" type="button" onClick={() => router.back()}>
-              Cancel
+            <Button variant="outline" onClick={() => setShowReview(false)}>
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Edit
             </Button>
-            <div className="space-x-2">
-              <Button variant="outline" type="button">
-                <Save className="mr-2 h-4 w-4" />
-                Save Draft
-              </Button>
-              <Button type="submit">
-                <Send className="mr-2 h-4 w-4" />
-                Send Task
-              </Button>
-            </div>
+            <Button onClick={handleSubmit} disabled={isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Submitting...
+                </>
+              ) : (
+                <>
+                  <Send className="mr-2 h-4 w-4" />
+                  Submit Task
+                </>
+              )}
+            </Button>
           </CardFooter>
-        </form>
-      </Card>
+        </Card>
+      ) : (
+        <Card>
+          <CardHeader>
+            <CardTitle>Create Task</CardTitle>
+          </CardHeader>
+          <form onSubmit={handleReview}>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="title">Task Title</Label>
+                <Input
+                  id="title"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="Enter a title for this task"
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="assignee">Assignee</Label>
+                <Select value={assignee} onValueChange={setAssignee}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select an assignee" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {users.map((user) => (
+                      <SelectItem key={user.id} value={user.id.toString()}>
+                        {user.username} {user.department ? `(${user.department.name})` : ""}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {process.fields.map((field) => (
+                <div key={field.id} className="space-y-2">
+                  <Label htmlFor={`field-${field.id}`}>
+                    {field.name}
+                    {field.required && <span className="text-red-500 ml-1">*</span>}
+                  </Label>
+                  {renderField(field)}
+                </div>
+              ))}
+            </CardContent>
+            <CardFooter className="flex justify-between">
+              <Button variant="outline" type="button" onClick={() => router.back()}>
+                Cancel
+              </Button>
+              <div className="space-x-2">
+                <Button variant="outline" type="button">
+                  <Save className="mr-2 h-4 w-4" />
+                  Save Draft
+                </Button>
+                <Button type="submit">
+                  <Eye className="mr-2 h-4 w-4" />
+                  Review
+                </Button>
+              </div>
+            </CardFooter>
+          </form>
+        </Card>
+      )}
     </div>
   )
 }

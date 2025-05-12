@@ -9,7 +9,7 @@ export async function POST(request: Request) {
 
     // Make request to Django backend
     const response = await axios.post(
-      `${process.env.API_URL}/token/`,
+      `${process.env.API_URL}/api/token/`,
       { username, password },
       { headers: { "Content-Type": "application/json" } },
     )

@@ -13,7 +13,7 @@ export async function GET() {
 
     // Make request to Django backend to refresh the token
     const response = await axios.post(
-      `${process.env.API_URL}/token/refresh/`,
+      `${process.env.API_URL}/api/token/refresh/`,
       { refresh: refreshToken },
       { headers: { "Content-Type": "application/json" } },
     )
