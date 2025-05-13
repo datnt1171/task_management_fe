@@ -1,80 +1,15 @@
-"use client"
-
-import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { FileText, Send, Inbox, Clock, Loader2 } from "lucide-react"
-import { getProcesses, getSentTasks, getReceivedTasks } from "@/lib/api-service"
+import { FileText, Send, Inbox, Clock } from "lucide-react"
+import { mockProcesses, mockTasks } from "@/lib/mock-data"
 
 export default function Dashboard() {
-  const [stats, setStats] = useState({
-    formTemplatesCount: 0,
-    sentTasksCount: 0,
-    receivedTasksCount: 0,
-    pendingTasksCount: 0,
-  })
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    async function fetchDashboardData() {
-      setIsLoading(true)
-      try {
-        // Fetch data in parallel
-        const [processesRes, sentTasksRes, receivedTasksRes] = await Promise.all([
-          getProcesses(),
-          getSentTasks(),
-          getReceivedTasks(),
-        ])
-
-        // Calculate counts
-        const formTemplatesCount = processesRes.data.count || processesRes.data.results.length
-        const sentTasksCount = sentTasksRes.data.count || sentTasksRes.data.results.length
-        const receivedTasksCount = receivedTasksRes.data.count || receivedTasksRes.data.results.length
-
-        // Calculate pending tasks (tasks with state name "pending")
-        const pendingTasksCount = receivedTasksRes.data.results.filter(
-          (task: any) => task.state.name === "pending",
-        ).length
-
-        setStats({
-          formTemplatesCount,
-          sentTasksCount,
-          receivedTasksCount,
-          pendingTasksCount,
-        })
-      } catch (err) {
-        console.error("Error fetching dashboard data:", err)
-        setError("Failed to load dashboard data")
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    fetchDashboardData()
-  }, [])
-
-  if (isLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mb-4" />
-        <p className="text-muted-foreground">Loading dashboard data...</p>
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div className="flex flex-col items-center justify-center py-12 text-center">
-        <h3 className="text-lg font-medium text-destructive">Error loading dashboard</h3>
-        <p className="text-muted-foreground mt-2">{error}</p>
-        <Button variant="outline" className="mt-4" onClick={() => window.location.reload()}>
-          Try Again
-        </Button>
-      </div>
-    )
-  }
+  // Get counts from mock data
+  const formTemplatesCount = mockProcesses.results.length
+  const sentTasksCount = mockTasks.sent.results.length
+  const receivedTasksCount = mockTasks.received.results.length
+  const pendingTasksCount = mockTasks.received.results.filter((task) => task.state.name === "pending").length
 
   return (
     <div className="space-y-6">
@@ -90,7 +25,7 @@ export default function Dashboard() {
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.formTemplatesCount}</div>
+            <div className="text-2xl font-bold">{formTemplatesCount}</div>
             <p className="text-xs text-muted-foreground">Available templates</p>
           </CardContent>
         </Card>
@@ -101,7 +36,7 @@ export default function Dashboard() {
             <Send className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.sentTasksCount}</div>
+            <div className="text-2xl font-bold">{sentTasksCount}</div>
             <p className="text-xs text-muted-foreground">Tasks you've sent</p>
           </CardContent>
         </Card>
@@ -112,7 +47,7 @@ export default function Dashboard() {
             <Inbox className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.receivedTasksCount}</div>
+            <div className="text-2xl font-bold">{receivedTasksCount}</div>
             <p className="text-xs text-muted-foreground">Tasks to complete</p>
           </CardContent>
         </Card>
@@ -123,7 +58,7 @@ export default function Dashboard() {
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.pendingTasksCount}</div>
+            <div className="text-2xl font-bold">{pendingTasksCount}</div>
             <p className="text-xs text-muted-foreground">Tasks awaiting response</p>
           </CardContent>
         </Card>
@@ -164,12 +99,25 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {/* This would ideally be populated from an API endpoint for recent activity */}
               <div className="flex items-center">
                 <div className="mr-2 h-2 w-2 rounded-full bg-green-500"></div>
                 <div className="flex-1">
-                  <p className="text-sm font-medium">Recent activity will appear here</p>
-                  <p className="text-xs text-muted-foreground">Connect to your activity feed API</p>
+                  <p className="text-sm font-medium">Project Update Form submitted</p>
+                  <p className="text-xs text-muted-foreground">2 hours ago</p>
+                </div>
+              </div>
+              <div className="flex items-center">
+                <div className="mr-2 h-2 w-2 rounded-full bg-blue-500"></div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium">New task received: Weekly Report</p>
+                  <p className="text-xs text-muted-foreground">Yesterday</p>
+                </div>
+              </div>
+              <div className="flex items-center">
+                <div className="mr-2 h-2 w-2 rounded-full bg-orange-500"></div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium">Expense Report needs revision</p>
+                  <p className="text-xs text-muted-foreground">2 days ago</p>
                 </div>
               </div>
             </div>

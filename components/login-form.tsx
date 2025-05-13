@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Loader2 } from "lucide-react"
-import axios from "axios"
+import { login } from "@/lib/api-service"
 
 export default function LoginForm() {
   const [username, setUsername] = useState("")
@@ -32,16 +32,7 @@ export default function LoginForm() {
 
     try {
       // Call our login API route
-      const response = await axios.post(
-        "/api/auth/login",
-        {
-          username,
-          password,
-        },
-        {
-          withCredentials: true,
-        },
-      )
+      const response = await login({ username, password })
 
       if (response.data.success) {
         // Store user info in localStorage (non-sensitive data only)

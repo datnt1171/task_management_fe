@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox"
 import { ArrowLeft, Save, Send, Loader2, Eye } from "lucide-react"
 import Link from "next/link"
-import { getProcessById, getUsers, createTask } from "@/lib/api-service"
+import { getProcessById, mockUsers } from "@/lib/mock-data"
 
 interface Field {
   id: number
@@ -28,47 +28,32 @@ interface Process {
   name: string
   description: string
   fields: Field[]
-}
-
-interface User {
-  id: number
-  username: string
-  department?: {
-    id: number
-    name: string
-  }
+  allowed_users?: { user: { id: number; username: string; department?: { name: string } } }[]
 }
 
 export default function FormPage({ params }: { params: { id: string } }) {
   const router = useRouter()
   const [process, setProcess] = useState<Process | null>(null)
-  const [users, setUsers] = useState<User[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [formValues, setFormValues] = useState<Record<string, any>>({})
   const [title, setTitle] = useState("")
   const [assignee, setAssignee] = useState("")
   const [showReview, setShowReview] = useState(false)
-  const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
-    async function fetchData() {
-      setIsLoading(true)
-      try {
-        // Fetch process and users in parallel
-        const [processResponse, usersResponse] = await Promise.all([getProcessById(params.id), getUsers()])
-
-        setProcess(processResponse.data)
-        setUsers(usersResponse.data.results || usersResponse.data)
-      } catch (err: any) {
-        console.error("Error fetching data:", err)
-        setError(err.response?.data?.error || "Failed to load form data")
-      } finally {
-        setIsLoading(false)
+    // Simulate API call with a delay
+    const timer = setTimeout(() => {
+      const processData = getProcessById(Number(params.id))
+      if (processData) {
+        setProcess(processData)
+      } else {
+        setError("Process not found")
       }
-    }
+      setIsLoading(false)
+    }, 1000)
 
-    fetchData()
+    return () => clearTimeout(timer)
   }, [params.id])
 
   const handleInputChange = (fieldId: number, value: any) => {
@@ -105,30 +90,9 @@ export default function FormPage({ params }: { params: { id: string } }) {
   }
 
   const handleSubmit = async () => {
-    if (!process || !assignee) return
-
-    setIsSubmitting(true)
-    try {
-      // Format the data for the API
-      const taskData = {
-        title,
-        process: process.id,
-        assignee: Number.parseInt(assignee),
-        fields: Object.entries(formValues).map(([key, value]) => ({
-          field_id: Number.parseInt(key),
-          value: value,
-        })),
-      }
-
-      await createTask(taskData)
-      alert("Task created successfully!")
-      router.push("/dashboard/sent")
-    } catch (err: any) {
-      console.error("Error creating task:", err)
-      alert(err.response?.data?.error || "Failed to create task")
-    } finally {
-      setIsSubmitting(false)
-    }
+    // Simulate API call
+    alert("Task created successfully! (Mock submission)")
+    router.push("/dashboard/sent")
   }
 
   const renderField = (field: Field) => {
@@ -250,6 +214,11 @@ export default function FormPage({ params }: { params: { id: string } }) {
     )
   }
 
+  // Filter users who are allowed to be assigned to this process
+  const allowedUsers = process.allowed_users
+    ? process.allowed_users.map((pu) => pu.user)
+    : mockUsers.filter((u) => u.id !== 1) // Exclude current user as fallback
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -277,7 +246,7 @@ export default function FormPage({ params }: { params: { id: string } }) {
             <div className="space-y-2">
               <Label>Assignee</Label>
               <div className="p-3 bg-muted rounded-md">
-                {users.find((u) => u.id.toString() === assignee)?.username || assignee}
+                {allowedUsers.find((u) => u.id.toString() === assignee)?.username || assignee}
               </div>
             </div>
 
@@ -302,18 +271,9 @@ export default function FormPage({ params }: { params: { id: string } }) {
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Edit
             </Button>
-            <Button onClick={handleSubmit} disabled={isSubmitting}>
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Submitting...
-                </>
-              ) : (
-                <>
-                  <Send className="mr-2 h-4 w-4" />
-                  Submit Task
-                </>
-              )}
+            <Button onClick={handleSubmit}>
+              <Send className="mr-2 h-4 w-4" />
+              Submit Task
             </Button>
           </CardFooter>
         </Card>
@@ -342,9 +302,9 @@ export default function FormPage({ params }: { params: { id: string } }) {
                     <SelectValue placeholder="Select an assignee" />
                   </SelectTrigger>
                   <SelectContent>
-                    {users.map((user) => (
+                    {allowedUsers.map((user) => (
                       <SelectItem key={user.id} value={user.id.toString()}>
-                        {user.username} {user.department ? `(${user.department.name})` : ""}
+                        {user.username} ({user.department?.name})
                       </SelectItem>
                     ))}
                   </SelectContent>

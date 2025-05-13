@@ -128,7 +128,7 @@ export default function CreateFormPage() {
                         value={field.type}
                         onValueChange={(value) => updateField(index, { type: value as FieldType })}
                       >
-                        <SelectTrigger id={`${field.id}-type`}>
+                        <SelectTrigger>
                           <SelectValue placeholder="Select field type" />
                         </SelectTrigger>
                         <SelectContent>

@@ -7,8 +7,7 @@ import { usePathname, useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { LayoutDashboard, FileText, Send, Inbox, LogOut, Menu, X, Loader2 } from "lucide-react"
-import { getCurrentUser } from "@/lib/api-service"
-import axios from "axios"
+import { getCurrentUser, logout } from "@/lib/api-service"
 
 interface User {
   id: number
@@ -58,7 +57,7 @@ export default function DashboardLayout({
 
   const handleLogout = async () => {
     try {
-      await axios.post("/api/auth/logout")
+      await logout()
       localStorage.removeItem("user")
       router.push("/login")
     } catch (error) {
