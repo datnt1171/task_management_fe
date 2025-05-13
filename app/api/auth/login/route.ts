@@ -22,7 +22,7 @@ export async function POST(request: Request) {
     // Access token - short expiry (e.g., 5 minutes)
     cookieStore.set("access_token", access, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: process.env.NODE_ENV === "development",
       sameSite: "strict",
       maxAge: 5 * 60, // 5 minutes in seconds
       path: "/",
@@ -31,7 +31,7 @@ export async function POST(request: Request) {
     // Refresh token - longer expiry (e.g., 7 days)
     cookieStore.set("refresh_token", refresh, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: process.env.NODE_ENV === "development",
       sameSite: "strict",
       maxAge: 7 * 24 * 60 * 60, // 7 days in seconds
       path: "/",

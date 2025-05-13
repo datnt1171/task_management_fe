@@ -21,7 +21,7 @@ api.interceptors.response.use(
 
       try {
         // Call our refresh token API route
-        await axios.get("/api/auth/refresh", { withCredentials: true })
+        await axios.get("/auth/refresh", { withCredentials: true })
 
         // Retry the original request
         return api(originalRequest)
@@ -46,8 +46,8 @@ export const getCurrentUser = () => api.get("/users/me")
 export const getUsers = () => api.get("/users")
 
 // Process/Form Template endpoints
-export const getProcesses = () => api.get("/processes/processes/")
-export const getProcessById = (id: string | number) => api.get(`/processes/processes/${id}/`)
+export const getProcesses = () => api.get("/processes/")
+export const getProcessById = (id: string | number) => api.get(`/processes/${id}/`)
 
 // Task endpoints
 export const getSentTasks = () => api.get("/tasks/sent/")
