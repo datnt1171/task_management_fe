@@ -19,19 +19,19 @@ export async function POST(request: Request) {
     // Set HTTP-only cookies
     const cookieStore = await cookies()
 
-    // Access token - short expiry (e.g., 5 minutes)
+    // Access token - longer expiry (30 minutes)
     cookieStore.set("access_token", access, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "development",
+      secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
-      maxAge: 5 * 60, // 5 minutes in seconds
+      maxAge: 30 * 60, // 30 minutes in seconds
       path: "/",
     })
 
     // Refresh token - longer expiry (e.g., 7 days)
     cookieStore.set("refresh_token", refresh, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "development",
+      secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
       maxAge: 7 * 24 * 60 * 60, // 7 days in seconds
       path: "/",

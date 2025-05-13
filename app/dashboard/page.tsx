@@ -1,15 +1,76 @@
+"use client"
+
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { FileText, Send, Inbox, Clock } from "lucide-react"
-import { mockProcesses, mockTasks } from "@/lib/mock-data"
+import { FileText, Send, Inbox, Clock, Loader2 } from "lucide-react"
+import { getProcesses, getSentTasks, getReceivedTasks } from "@/lib/api-service"
 
 export default function Dashboard() {
-  // Get counts from mock data
-  const formTemplatesCount = mockProcesses.results.length
-  const sentTasksCount = mockTasks.sent.results.length
-  const receivedTasksCount = mockTasks.received.results.length
-  const pendingTasksCount = mockTasks.received.results.filter((task) => task.state.name === "pending").length
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [dashboardData, setDashboardData] = useState({
+    formTemplatesCount: 0,
+    sentTasksCount: 0,
+    receivedTasksCount: 0,
+    pendingTasksCount: 0,
+  })
+
+  useEffect(() => {
+    async function fetchDashboardData() {
+      setIsLoading(true)
+      try {
+        // Fetch all data in parallel
+        const [processesRes, sentTasksRes, receivedTasksRes] = await Promise.all([
+          getProcesses(),
+          getSentTasks(),
+          getReceivedTasks(),
+        ])
+
+        interface Task {
+          state: string;
+        }
+
+        // Count pending tasks (tasks with state containing "pending" in lowercase)
+        const pendingTasks = receivedTasksRes.data.results.filter((task: Task) =>
+          task.state.toLowerCase().includes("pending"),
+        )
+
+        setDashboardData({
+          formTemplatesCount: processesRes.data.count,
+          sentTasksCount: sentTasksRes.data.count,
+          receivedTasksCount: receivedTasksRes.data.count,
+          pendingTasksCount: pendingTasks.length,
+        })
+      } catch (err) {
+        console.error("Error fetching dashboard data:", err)
+        setError("Failed to load dashboard data. Please try again later.")
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchDashboardData()
+  }, [])
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mb-4" />
+        <p className="text-muted-foreground">Loading dashboard data...</p>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full py-12">
+        <p className="text-destructive mb-4">{error}</p>
+        <Button onClick={() => window.location.reload()}>Retry</Button>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
@@ -25,7 +86,7 @@ export default function Dashboard() {
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formTemplatesCount}</div>
+            <div className="text-2xl font-bold">{dashboardData.formTemplatesCount}</div>
             <p className="text-xs text-muted-foreground">Available templates</p>
           </CardContent>
         </Card>
@@ -36,7 +97,7 @@ export default function Dashboard() {
             <Send className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{sentTasksCount}</div>
+            <div className="text-2xl font-bold">{dashboardData.sentTasksCount}</div>
             <p className="text-xs text-muted-foreground">Tasks you've sent</p>
           </CardContent>
         </Card>
@@ -47,7 +108,7 @@ export default function Dashboard() {
             <Inbox className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{receivedTasksCount}</div>
+            <div className="text-2xl font-bold">{dashboardData.receivedTasksCount}</div>
             <p className="text-xs text-muted-foreground">Tasks to complete</p>
           </CardContent>
         </Card>
@@ -58,7 +119,7 @@ export default function Dashboard() {
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{pendingTasksCount}</div>
+            <div className="text-2xl font-bold">{dashboardData.pendingTasksCount}</div>
             <p className="text-xs text-muted-foreground">Tasks awaiting response</p>
           </CardContent>
         </Card>

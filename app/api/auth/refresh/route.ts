@@ -20,12 +20,12 @@ export async function GET() {
 
     const { access } = response.data
 
-    // Set new access token cookie
+    // Set new access token cookie with longer expiry
     cookieStore.set("access_token", access, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "development",
+      secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
-      maxAge: 5 * 60, // 5 minutes in seconds
+      maxAge: 30 * 60, // 30 minutes in seconds
       path: "/",
     })
 

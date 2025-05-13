@@ -9,6 +9,22 @@ const api = axios.create({
   withCredentials: true, // Important for cookies
 })
 
+// Track if a token refresh is in progress
+let isRefreshing = false
+let failedQueue: any[] = []
+
+const processQueue = (error: any, token: string | null = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error)
+    } else {
+      prom.resolve()
+    }
+  })
+
+  failedQueue = []
+}
+
 // Add a response interceptor to handle token refresh
 api.interceptors.response.use(
   (response) => response,
@@ -17,18 +33,38 @@ api.interceptors.response.use(
 
     // If the error is 401 and we haven't already tried to refresh
     if (error.response?.status === 401 && !originalRequest._retry) {
+      if (isRefreshing) {
+        // If a refresh is already in progress, add this request to the queue
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject })
+        })
+          .then(() => {
+            return api(originalRequest)
+          })
+          .catch((err) => {
+            return Promise.reject(err)
+          })
+      }
+
       originalRequest._retry = true
+      isRefreshing = true
 
       try {
         // Call our refresh token API route
-        await axios.get("/auth/refresh", { withCredentials: true })
+        await api.get("/auth/refresh")
+
+        // Process any queued requests
+        processQueue(null)
 
         // Retry the original request
         return api(originalRequest)
       } catch (refreshError) {
-        // If refresh fails, redirect to login
+        // If refresh fails, process queue with error and redirect to login
+        processQueue(refreshError)
         window.location.href = "/login"
         return Promise.reject(refreshError)
+      } finally {
+        isRefreshing = false
       }
     }
 

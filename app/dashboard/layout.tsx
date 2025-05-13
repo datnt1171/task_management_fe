@@ -7,7 +7,7 @@ import { usePathname, useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { LayoutDashboard, FileText, Send, Inbox, LogOut, Menu, X, Loader2 } from "lucide-react"
-import { getCurrentUser, logout } from "@/lib/api-service"
+import { getCurrentUser, logout, refreshToken } from "@/lib/api-service"
 
 interface User {
   id: number
@@ -37,6 +37,17 @@ export default function DashboardLayout({
 
   useEffect(() => {
     fetchCurrentUser()
+
+    // Set up token refresh interval
+    const refreshInterval = setInterval(
+      () => {
+        // Refresh token every 25 minutes (5 minutes before the 30-minute expiry)
+        refreshToken().catch(console.error)
+      },
+      25 * 60 * 1000,
+    )
+
+    return () => clearInterval(refreshInterval)
   }, [])
 
   const fetchCurrentUser = async () => {
