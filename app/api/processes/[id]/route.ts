@@ -11,7 +11,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const response = await axios.get(`${process.env.API_URL}/api/processes/processes/${params.id}/`, {
+    const response = await axios.get(`${process.env.API_URL}/api/processes/${params.id}/`, {
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
