@@ -6,7 +6,7 @@ export async function GET(
   request: Request,
   context: { params: { id: string } }
 ) {
-  const { id } = context.params // Destructure id from context.params
+  const { id } = await context.params // Destructure id from context.params
 
   try {
     const cookieStore = await cookies()

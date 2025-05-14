@@ -7,7 +7,7 @@ export async function GET(
   context: {params: { id: string } }
   ) {
   
-  const { id } = context.params
+  const { id } = await context.params
 
   try {
     const cookieStore = await cookies()
