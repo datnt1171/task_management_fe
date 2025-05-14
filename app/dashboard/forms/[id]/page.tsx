@@ -1,8 +1,6 @@
 "use client"
 
-import type React from "react"
-
-import { useState, useEffect } from "react"
+import React, { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -21,6 +19,7 @@ interface Field {
   field_type: string
   required: boolean
   options: string[] | null
+  order: number
 }
 
 interface Process {
@@ -46,6 +45,10 @@ interface User {
 }
 
 export default function FormPage({ params }: { params: { id: string } }) {
+  // Unwrap params using React.use()
+  const unwrappedParams = React.use(params)
+  const id = unwrappedParams.id
+
   const router = useRouter()
   const [process, setProcess] = useState<Process | null>(null)
   const [users, setUsers] = useState<User[]>([])
@@ -53,7 +56,6 @@ export default function FormPage({ params }: { params: { id: string } }) {
   const [error, setError] = useState<string | null>(null)
   const [formValues, setFormValues] = useState<Record<string, any>>({})
   const [title, setTitle] = useState("")
-  const [assignee, setAssignee] = useState("")
   const [showReview, setShowReview] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -62,9 +64,15 @@ export default function FormPage({ params }: { params: { id: string } }) {
       setIsLoading(true)
       try {
         // Fetch process and users in parallel
-        const [processResponse, usersResponse] = await Promise.all([getProcessById(params.id), getUsers()])
+        const [processResponse, usersResponse] = await Promise.all([getProcessById(id), getUsers()])
 
-        setProcess(processResponse.data)
+        // Sort fields by order
+        const processData = processResponse.data
+        if (processData.fields) {
+          processData.fields.sort((a: Field, b: Field) => a.order - b.order)
+        }
+
+        setProcess(processData)
         setUsers(usersResponse.data.results || [])
       } catch (err: any) {
         console.error("Error fetching data:", err)
@@ -75,7 +83,7 @@ export default function FormPage({ params }: { params: { id: string } }) {
     }
 
     fetchData()
-  }, [params.id])
+  }, [id])
 
   const handleInputChange = (fieldId: number, value: any) => {
     setFormValues({
@@ -102,26 +110,32 @@ export default function FormPage({ params }: { params: { id: string } }) {
       return
     }
 
-    if (!assignee) {
-      alert("Please select an assignee")
-      return
-    }
-
     setShowReview(true)
   }
 
   const handleSubmit = async () => {
     setIsSubmitting(true)
     try {
+      // Find assignee field if it exists
+      const assigneeField = process?.fields.find((field) => field.field_type === "assignee")
+
       // Format the data for the API
       const taskData = {
         process: process?.id,
         title: title,
-        assignee: assignee,
-        fields: Object.entries(formValues).map(([key, value]) => ({
-          field_id: key,
-          value: value,
-        })),
+        // If we have an assignee field, use its value
+        ...(assigneeField && formValues[assigneeField.id] && { assignee: formValues[assigneeField.id] }),
+        fields: Object.entries(formValues)
+          // Filter out assignee fields as they're handled separately
+          .filter(([key, _]) => {
+            const fieldId = Number.parseInt(key)
+            const field = process?.fields.find((f) => f.id === fieldId)
+            return field && field.field_type !== "assignee"
+          })
+          .map(([key, value]) => ({
+            field_id: key,
+            value: value,
+          })),
       }
 
       // Submit the task
@@ -139,6 +153,25 @@ export default function FormPage({ params }: { params: { id: string } }) {
 
   const renderField = (field: Field) => {
     switch (field.field_type) {
+      case "assignee":
+        return (
+          <Select
+            value={formValues[field.id] || ""}
+            onValueChange={(value) => handleInputChange(field.id, value)}
+            disabled={showReview}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select a user" />
+            </SelectTrigger>
+            <SelectContent>
+              {users.map((user) => (
+                <SelectItem key={user.id} value={user.id.toString()}>
+                  {user.username} {user.department ? `(${user.department.name})` : ""}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )
       case "text":
         return (
           <Input
@@ -232,6 +265,22 @@ export default function FormPage({ params }: { params: { id: string } }) {
     }
   }
 
+  // Helper function to display field value in review mode
+  const displayFieldValue = (field: Field) => {
+    if (!formValues[field.id]) {
+      return <span className="text-muted-foreground italic">No value provided</span>
+    }
+
+    switch (field.field_type) {
+      case "assignee":
+        return users.find((u) => u.id.toString() === formValues[field.id])?.username || formValues[field.id]
+      case "checkbox":
+        return formValues[field.id] ? "Yes" : "No"
+      default:
+        return formValues[field.id]
+    }
+  }
+
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center py-12">
@@ -255,6 +304,9 @@ export default function FormPage({ params }: { params: { id: string } }) {
       </div>
     )
   }
+
+  // Sort fields by order
+  const sortedFields = [...process.fields].sort((a, b) => a.order - b.order)
 
   return (
     <div className="space-y-6">
@@ -280,26 +332,13 @@ export default function FormPage({ params }: { params: { id: string } }) {
               <div className="p-3 bg-muted rounded-md">{title}</div>
             </div>
 
-            <div className="space-y-2">
-              <Label>Assignee</Label>
-              <div className="p-3 bg-muted rounded-md">
-                {users.find((u) => u.id.toString() === assignee)?.username || assignee}
-              </div>
-            </div>
-
-            {process.fields.map((field) => (
+            {sortedFields.map((field) => (
               <div key={field.id} className="space-y-2">
                 <Label>
                   {field.name}
                   {field.required && <span className="text-red-500 ml-1">*</span>}
                 </Label>
-                <div className="p-3 bg-muted rounded-md">
-                  {field.field_type === "checkbox"
-                    ? formValues[field.id]
-                      ? "Yes"
-                      : "No"
-                    : formValues[field.id] || <span className="text-muted-foreground italic">No value provided</span>}
-                </div>
+                <div className="p-3 bg-muted rounded-md">{displayFieldValue(field)}</div>
               </div>
             ))}
           </CardContent>
@@ -341,23 +380,7 @@ export default function FormPage({ params }: { params: { id: string } }) {
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="assignee">Assignee</Label>
-                <Select value={assignee} onValueChange={setAssignee}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select an assignee" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {users.map((user) => (
-                      <SelectItem key={user.id} value={user.id.toString()}>
-                        {user.username} {user.department ? `(${user.department.name})` : ""}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {process.fields.map((field) => (
+              {sortedFields.map((field) => (
                 <div key={field.id} className="space-y-2">
                   <Label htmlFor={`field-${field.id}`}>
                     {field.name}

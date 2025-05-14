@@ -17,18 +17,10 @@ interface Task {
   process: {
     name: string
   }
-  state: {
-    id: number
-    name: string
-  }
+  state: string
+  state_type: string
   created_at: string
-  stakeholders: Array<{
-    id: number
-    user: {
-      id: number
-      username: string
-    }
-  }>
+  recipient: string
 }
 
 export default function SentTasksPage() {
@@ -58,21 +50,25 @@ export default function SentTasksPage() {
     (task) =>
       task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       task.process.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      task.stakeholders.some((s) => s.user.username.toLowerCase().includes(searchQuery.toLowerCase())),
+      task.recipient.toLowerCase().includes(searchQuery.toLowerCase()),
   )
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "completed":
-        return "bg-green-100 text-green-800"
-      case "pending":
+  const getStatusColor = (stateType: string) => {
+    switch (stateType) {
+      case "pending approve":
         return "bg-yellow-100 text-yellow-800"
-      case "working-on":
+      case "analyze":
         return "bg-blue-100 text-blue-800"
-      case "rejected":
-        return "bg-red-100 text-red-800"
-      case "approved":
+      case "working":
+        return "bg-indigo-100 text-indigo-800"
+      case "pending review":
         return "bg-purple-100 text-purple-800"
+      case "start":
+        return "bg-gray-100 text-gray-800"
+      case "denied":
+        return "bg-red-100 text-red-800"
+      case "closed":
+        return "bg-green-100 text-green-800"
       default:
         return "bg-gray-100 text-gray-800"
     }
@@ -144,12 +140,12 @@ export default function SentTasksPage() {
                         {task.title}
                       </Link>
                     </TableCell>
-                    <TableCell>{task.stakeholders.map((s) => s.user.username).join(", ")}</TableCell>
+                    <TableCell>{task.recipient}</TableCell>
                     <TableCell>{task.process.name}</TableCell>
                     <TableCell>{new Date(task.created_at).toLocaleDateString()}</TableCell>
                     <TableCell>
-                      <Badge variant="outline" className={getStatusColor(task.state.name)}>
-                        {task.state.name}
+                      <Badge variant="outline" className={getStatusColor(task.state_type)}>
+                        {task.state}
                       </Badge>
                     </TableCell>
                     <TableCell>

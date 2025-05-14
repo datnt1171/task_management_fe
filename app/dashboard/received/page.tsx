@@ -10,32 +10,19 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Badge } from "@/components/ui/badge"
 import { Search, MoreHorizontal, Loader2 } from "lucide-react"
 import { getReceivedTasks } from "@/lib/api-service"
-
-interface User {
-  id: number
-  username: string
-  first_name?: string
-  last_name?: string
-}
+import { formatDateToUTC7 } from "@/lib/utils"
 
 interface Task {
   id: number
   title: string
   process: {
-    id: number
     name: string
   }
-  state: {
-    id: number
-    name: string
-  }
-  created_by: User
+  state: string
+  state_type: string
   created_at: string
-  available_actions?: Array<{
-    id: number
-    name: string
-    description: string
-  }>
+  created_by: string
+  action?: string
 }
 
 export default function ReceivedTasksPage() {
@@ -65,21 +52,25 @@ export default function ReceivedTasksPage() {
     (task) =>
       task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       task.process.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      task.created_by.username.toLowerCase().includes(searchQuery.toLowerCase()),
+      task.created_by.toLowerCase().includes(searchQuery.toLowerCase()),
   )
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "completed":
-        return "bg-green-100 text-green-800"
-      case "pending":
+  const getStatusColor = (stateType: string) => {
+    switch (stateType) {
+      case "pending approve":
         return "bg-yellow-100 text-yellow-800"
-      case "working-on":
+      case "analyze":
         return "bg-blue-100 text-blue-800"
-      case "rejected":
-        return "bg-red-100 text-red-800"
-      case "approved":
+      case "working":
+        return "bg-indigo-100 text-indigo-800"
+      case "pending review":
         return "bg-purple-100 text-purple-800"
+      case "start":
+        return "bg-gray-100 text-gray-800"
+      case "denied":
+        return "bg-red-100 text-red-800"
+      case "closed":
+        return "bg-green-100 text-green-800"
       default:
         return "bg-gray-100 text-gray-800"
     }
@@ -131,7 +122,7 @@ export default function ReceivedTasksPage() {
                   <TableHead>From</TableHead>
                   <TableHead>Form Type</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Action</TableHead>
+                  <TableHead>Created At</TableHead>
                   <TableHead className="w-[50px]"></TableHead>
                 </TableRow>
               </TableHeader>
@@ -143,20 +134,14 @@ export default function ReceivedTasksPage() {
                         {task.title}
                       </Link>
                     </TableCell>
-                    <TableCell>{task.created_by.username}</TableCell>
+                    <TableCell>{task.created_by}</TableCell>
                     <TableCell>{task.process.name}</TableCell>
                     <TableCell>
-                      <Badge variant="outline" className={getStatusColor(task.state.name)}>
-                        {task.state.name}
+                      <Badge variant="outline" className={getStatusColor(task.state_type)}>
+                        {task.state}
                       </Badge>
                     </TableCell>
-                    <TableCell>
-                      {task.available_actions && task.available_actions.length > 0 && (
-                        <Badge variant="outline" className="bg-blue-100 text-blue-800">
-                          {task.available_actions[0].name}
-                        </Badge>
-                      )}
-                    </TableCell>
+                    <TableCell>{formatDateToUTC7(task.created_at)}</TableCell>
                     <TableCell>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -169,11 +154,6 @@ export default function ReceivedTasksPage() {
                           <DropdownMenuItem>
                             <Link href={`/dashboard/task/${task.id}`}>View Details</Link>
                           </DropdownMenuItem>
-                          {task.available_actions && task.available_actions.length > 0 && (
-                            <DropdownMenuItem>
-                              <Link href={`/dashboard/task/${task.id}`}>{task.available_actions[0].name}</Link>
-                            </DropdownMenuItem>
-                          )}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
