@@ -2,7 +2,13 @@ import { NextResponse } from "next/server"
 import { cookies } from "next/headers"
 import axios from "axios"
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export async function GET(
+  request: Request, 
+  context: {params: { id: string } }
+  ) {
+  
+  const { id } = context.params
+
   try {
     const cookieStore = await cookies()
     const token = cookieStore.get("access_token")?.value
@@ -11,7 +17,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const response = await axios.get(`${process.env.API_URL}/api/tasks/${params.id}/`, {
+    const response = await axios.get(`${process.env.API_URL}/api/tasks/${ id }/`, {
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
