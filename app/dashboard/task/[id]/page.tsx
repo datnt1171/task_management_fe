@@ -1,15 +1,13 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { use, useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, Calendar, CheckCircle, Download, User, Loader2, Clock } from "lucide-react"
+import { ArrowLeft, Calendar, User, Loader2, Clock } from "lucide-react"
 import { getTaskById, performTaskAction } from "@/lib/api-service"
-import { Textarea } from "@/components/ui/textarea"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 
 interface TaskData {
   field: {
@@ -21,16 +19,11 @@ interface TaskData {
 
 interface ActionLog {
   id: number
-  user: {
-    id: number
-    username: string
-  }
-  action: {
-    id: number
-    name: string
-    description: string
-  }
-  comment?: string
+  user_id: number
+  username: string
+  action_id: number
+  action_name: string
+  action_description: string
   timestamp: string
 }
 
@@ -50,40 +43,30 @@ interface Task {
     username: string
   }
   created_at: string
-  stakeholders: Array<{
-    id: number
-    user: {
-      id: number
-      username: string
-    }
-  }>
   task_data: TaskData[]
   action_logs: ActionLog[]
-  available_actions?: Array<{
+  available_actions: Array<{
     id: number
     name: string
     description: string
+    type?: string
   }>
 }
 
-export default function TaskDetailPage({ params }: { params: { id: string } }) {
+export default function TaskDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
   const [task, setTask] = useState<Task | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [actionDialogOpen, setActionDialogOpen] = useState(false)
-  const [selectedAction, setSelectedAction] = useState<{ id: number; name: string; description: string } | null>(null)
-  const [actionComment, setActionComment] = useState("")
-  const [isSubmitting, setIsSubmitting] = useState(false)
-
+  const { id } = use(params)
   useEffect(() => {
     fetchTaskData()
-  }, [params.id])
+  }, [id])
 
   const fetchTaskData = async () => {
     setIsLoading(true)
     try {
-      const response = await getTaskById(params.id)
+      const response = await getTaskById(id)
       setTask(response.data)
     } catch (err: any) {
       console.error("Error fetching task:", err)
@@ -93,45 +76,30 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
     }
   }
 
-  const openActionDialog = (action: { id: number; name: string; description: string }) => {
-    setSelectedAction(action)
-    setActionComment("")
-    setActionDialogOpen(true)
-  }
-
-  const handleAction = async () => {
-    if (!task || !selectedAction) return
-
-    setIsSubmitting(true)
+  const handleActionClick = async (actionId: number) => {
+    if (!task) return
     try {
-      const response = await performTaskAction(task.id, {
-        action: selectedAction.name.toLowerCase(),
-        comment: actionComment,
-      })
-
-      setTask(response.data.task)
-      setActionDialogOpen(false)
-      alert(`Task ${selectedAction.name.toLowerCase()}d successfully!`)
+      await performTaskAction(task.id, { action_id: actionId })
+      alert(`Action performed successfully!`)
+      fetchTaskData() // Refresh task data after action
     } catch (err: any) {
       console.error("Error performing action:", err)
       alert(err.response?.data?.error || "Failed to perform action")
-    } finally {
-      setIsSubmitting(false)
     }
   }
 
   const getStatusColor = (status: string) => {
-    switch (status) {
-      case "completed":
-        return "bg-green-100 text-green-800"
+    switch (status.toLowerCase()) {
       case "pending":
         return "bg-yellow-100 text-yellow-800"
-      case "working-on":
-        return "bg-blue-100 text-blue-800"
-      case "rejected":
-        return "bg-red-100 text-red-800"
-      case "approved":
+      case "approve":
         return "bg-purple-100 text-purple-800"
+      case "complete":
+        return "bg-green-100 text-green-800"
+      case "reject":
+        return "bg-red-100 text-red-800"
+      case "working":
+        return "bg-blue-100 text-blue-800"
       default:
         return "bg-gray-100 text-gray-800"
     }
@@ -193,12 +161,6 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
                   </div>
                 </div>
               ))}
-
-              {(!task.task_data || task.task_data.length === 0) && (
-                <div className="p-3 bg-muted rounded-md text-center">
-                  <span className="text-muted-foreground italic">No field data available</span>
-                </div>
-              )}
             </CardContent>
           </Card>
 
@@ -215,14 +177,19 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
                     </div>
                     <div className="flex-1">
                       <p className="text-sm">
-                        <span className="font-medium">{log.user.username}</span>{" "}
-                        <span className="text-muted-foreground">{log.action.description || log.action.name}</span>
+                        <span className="font-medium">{log.username}</span>{" "}
+                        <span className="text-muted-foreground">{log.action_description || log.action_name}</span>
                       </p>
-                      {log.comment && <p className="text-sm mt-1 italic">"{log.comment}"</p>}
                       <p className="text-xs text-muted-foreground">{new Date(log.timestamp).toLocaleString()}</p>
                     </div>
                   </div>
                 ))}
+
+                {(!task.action_logs || task.action_logs.length === 0) && (
+                  <div className="text-center text-muted-foreground">
+                    <p>No activity recorded yet</p>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -242,93 +209,39 @@ export default function TaskDetailPage({ params }: { params: { id: string } }) {
                 </div>
               </div>
 
-              {task.created_by && (
-                <div className="flex items-center">
-                  <User className="h-4 w-4 mr-2 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm font-medium">Created By</p>
-                    <p className="text-sm text-muted-foreground">{task.created_by.username}</p>
-                  </div>
-                </div>
-              )}
-
               <div className="flex items-center">
                 <User className="h-4 w-4 mr-2 text-muted-foreground" />
                 <div>
-                  <p className="text-sm font-medium">Stakeholders</p>
-                  <p className="text-sm text-muted-foreground">
-                    {task.stakeholders.map((s) => s.user.username).join(", ")}
-                  </p>
+                  <p className="text-sm font-medium">Created By</p>
+                  <p className="text-sm text-muted-foreground">{task.created_by.username}</p>
                 </div>
-              </div>
-
-              <div className="pt-2">
-                <Button variant="outline" className="w-full">
-                  <Download className="mr-2 h-4 w-4" />
-                  Download as PDF
-                </Button>
               </div>
             </CardContent>
           </Card>
 
-          {task.available_actions && task.available_actions.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Available Actions</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                {task.available_actions.map((action) => (
+          <Card>
+            <CardHeader>
+              <CardTitle>Available Actions</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {task.available_actions.length > 0 ? (
+                task.available_actions.map((action) => (
                   <Button
                     key={action.id}
                     className="w-full justify-start mb-2"
-                    onClick={() => openActionDialog(action)}
+                    variant="outline"
+                    onClick={() => handleActionClick(action.id)}
                   >
-                    <CheckCircle className="mr-2 h-4 w-4" />
                     {action.name}
                   </Button>
-                ))}
-              </CardContent>
-            </Card>
-          )}
+                ))
+              ) : (
+                <p className="text-sm text-muted-foreground">No actions available for this task.</p>
+              )}
+            </CardContent>
+          </Card>
         </div>
       </div>
-
-      <Dialog open={actionDialogOpen} onOpenChange={setActionDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{selectedAction?.name} Task</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Comment (Optional)</label>
-              <Textarea
-                placeholder="Add a comment about your decision..."
-                value={actionComment}
-                onChange={(e) => setActionComment(e.target.value)}
-                rows={4}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setActionDialogOpen(false)} disabled={isSubmitting}>
-              Cancel
-            </Button>
-            <Button onClick={handleAction} disabled={isSubmitting}>
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Processing...
-                </>
-              ) : (
-                <>
-                  <CheckCircle className="mr-2 h-4 w-4" />
-                  {selectedAction?.name}
-                </>
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }

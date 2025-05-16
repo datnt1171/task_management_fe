@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, use } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -44,10 +44,9 @@ interface User {
   }
 }
 
-export default function FormPage({ params }: { params: { id: string } }) {
+export default function FormPage({ params }: { params: Promise<{ id: string }> }) {
   // Unwrap params using React.use()
-  const unwrappedParams = React.use(params)
-  const id = unwrappedParams.id
+  const { id } = use(params)
 
   const router = useRouter()
   const [process, setProcess] = useState<Process | null>(null)
