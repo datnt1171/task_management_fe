@@ -8,39 +8,46 @@ export async function GET() {
     const refreshToken = cookieStore.get("refresh_token")?.value
 
     if (!refreshToken) {
-      return NextResponse.json({ success: false, error: "No refresh token found" }, { status: 401 })
+      return NextResponse.json(
+        { success: false, error: "No refresh token found" },
+        { status: 401 }
+      )
     }
 
-    // Make request to Django backend to refresh the token
     const response = await axios.post(
       `${process.env.API_URL}/api/token/refresh/`,
       { refresh: refreshToken },
-      { headers: { "Content-Type": "application/json" } },
+      { headers: { "Content-Type": "application/json" } }
     )
 
-    const { access } = response.data
+    if (!response.data.access) {
+      throw new Error("No access token received")
+    }
 
-    // Set new access token cookie with longer expiry
-    cookieStore.set("access_token", access, {
+    // Set new access token cookie
+    cookieStore.set("access_token", response.data.access, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
-      maxAge: 30 * 60, // 30 minutes in seconds
+      maxAge: 30 * 60,
       path: "/",
     })
 
     return NextResponse.json({ success: true })
   } catch (error: any) {
     console.error("Token refresh error:", error.response?.data || error.message)
-
-    // Clear cookies on refresh failure
+    
+    // Clear both tokens on refresh failure
     const cookieStore = await cookies()
     cookieStore.delete("access_token")
     cookieStore.delete("refresh_token")
 
     return NextResponse.json(
-      { success: false, error: error.response?.data || "Token refresh failed" },
-      { status: error.response?.status || 500 },
+      { 
+        success: false, 
+        error: "Token refresh failed. Please login again." 
+      },
+      { status: 401 }
     )
   }
 }

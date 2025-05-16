@@ -44,9 +44,10 @@ export async function POST(request: Request) {
     })
   } catch (error: any) {
     console.error("Login error:", error.response?.data || error.message)
-    return NextResponse.json(
-      { success: false, error: error.response?.data || "Authentication failed" },
-      { status: error.response?.status || 500 },
-    )
+
+    // Format the error response properly
+    const errorMessage = error.response?.data?.detail || error.response?.data || "Authentication failed"
+
+    return NextResponse.json({ success: false, error: errorMessage }, { status: error.response?.status || 500 })
   }
 }

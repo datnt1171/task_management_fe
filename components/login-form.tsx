@@ -23,26 +23,20 @@ export default function LoginForm() {
     setError("")
     setIsLoading(true)
 
-    // Simple validation
-    if (!username || !password) {
-      setError("Username and password are required")
-      setIsLoading(false)
-      return
-    }
-
     try {
-      // Call our login API route
       const response = await login({ username, password })
 
-      if (response.data.success) {
-        // Store user info in localStorage (non-sensitive data only)
-        localStorage.setItem("user", JSON.stringify({ username: response.data.user.username }))
-        router.push("/dashboard")
-      } else {
-        setError(response.data.error || "Login failed")
-      }
+      // Store user info in localStorage (non-sensitive data only)
+      localStorage.setItem("user", JSON.stringify({ username: response.data.user.username }))
+      router.push("/dashboard")
     } catch (err: any) {
-      setError(err.response?.data?.error || "Authentication failed. Please check your credentials.")
+      // Suppress Axios error from propagating to the console
+      if (err.response?.status === 401) {
+        const errorMessage = err.response?.data?.error || "Authentication failed. Please check your credentials."
+        setError(errorMessage)
+      } else {
+        console.error("Unexpected error:", err)
+      }
     } finally {
       setIsLoading(false)
     }
