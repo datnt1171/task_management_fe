@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ArrowLeft, Calendar, User, Loader2, Clock } from "lucide-react"
 import { getTaskById, performTaskAction } from "@/lib/api-service"
+import { getStatusColor } from "@/lib/utils"
 
 interface TaskData {
   field: {
@@ -19,11 +20,16 @@ interface TaskData {
 
 interface ActionLog {
   id: number
-  user_id: number
-  username: string
-  action_id: number
-  action_name: string
-  action_description: string
+  user: {
+    id: number
+    username: string
+  }
+  action: {
+    id: number
+    name: string
+    description: string
+    type: string
+  }
   timestamp: string
 }
 
@@ -37,6 +43,7 @@ interface Task {
   state: {
     id: number
     name: string
+    state_type: string
   }
   created_by: {
     id: number
@@ -49,7 +56,7 @@ interface Task {
     id: number
     name: string
     description: string
-    type?: string
+    type: string
   }>
 }
 
@@ -88,23 +95,6 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
     }
   }
 
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case "pending":
-        return "bg-yellow-100 text-yellow-800"
-      case "approve":
-        return "bg-purple-100 text-purple-800"
-      case "complete":
-        return "bg-green-100 text-green-800"
-      case "reject":
-        return "bg-red-100 text-red-800"
-      case "working":
-        return "bg-blue-100 text-blue-800"
-      default:
-        return "bg-gray-100 text-gray-800"
-    }
-  }
-
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center py-12">
@@ -139,7 +129,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
           <h1 className="text-2xl font-bold tracking-tight">{task.title}</h1>
           <div className="flex items-center space-x-2 mt-1">
             <Badge variant="outline">{task.process.name}</Badge>
-            <Badge variant="outline" className={getStatusColor(task.state.name)}>
+            <Badge variant="outline" className={getStatusColor(task.state.state_type)}>
               {task.state.name}
             </Badge>
           </div>
@@ -177,8 +167,8 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
                     </div>
                     <div className="flex-1">
                       <p className="text-sm">
-                        <span className="font-medium">{log.username}</span>{" "}
-                        <span className="text-muted-foreground">{log.action_description || log.action_name}</span>
+                        <span className="font-medium">{log.user.username}</span>{" "}
+                        <span className="text-muted-foreground">{log.action.description || log.action.name}</span>
                       </p>
                       <p className="text-xs text-muted-foreground">{new Date(log.timestamp).toLocaleString()}</p>
                     </div>

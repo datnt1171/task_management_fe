@@ -10,6 +10,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Badge } from "@/components/ui/badge"
 import { Search, MoreHorizontal, Plus, Loader2 } from "lucide-react"
 import { getSentTasks } from "@/lib/api-service"
+import { getStatusColor } from "@/lib/utils"
 
 interface Task {
   id: number
@@ -52,27 +53,6 @@ export default function SentTasksPage() {
       task.process.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       task.recipient.toLowerCase().includes(searchQuery.toLowerCase()),
   )
-
-  const getStatusColor = (stateType: string) => {
-    switch (stateType) {
-      case "pending approve":
-        return "bg-yellow-100 text-yellow-800"
-      case "analyze":
-        return "bg-blue-100 text-blue-800"
-      case "working":
-        return "bg-indigo-100 text-indigo-800"
-      case "pending review":
-        return "bg-purple-100 text-purple-800"
-      case "start":
-        return "bg-gray-100 text-gray-800"
-      case "denied":
-        return "bg-red-100 text-red-800"
-      case "closed":
-        return "bg-green-100 text-green-800"
-      default:
-        return "bg-gray-100 text-gray-800"
-    }
-  }
 
   return (
     <div className="space-y-6">
