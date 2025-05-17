@@ -92,6 +92,5 @@ export const performTaskAction = (
   id: string | number,
   actionData: { action_id: number }
 ) => api.post(`/tasks/${id}/actions/`, actionData)
-export const getTaskHistory = (id: string | number) => api.get(`/tasks/${id}/history/`)
 
 export default api

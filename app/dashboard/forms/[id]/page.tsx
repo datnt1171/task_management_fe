@@ -390,14 +390,7 @@ export default function FormPage({ params }: { params: Promise<{ id: string }> }
               ))}
             </CardContent>
             <CardFooter className="flex justify-between">
-              <Button variant="outline" type="button" onClick={() => router.back()}>
-                Cancel
-              </Button>
               <div className="space-x-2">
-                <Button variant="outline" type="button">
-                  <Save className="mr-2 h-4 w-4" />
-                  Save Draft
-                </Button>
                 <Button type="submit">
                   <Eye className="mr-2 h-4 w-4" />
                   Review

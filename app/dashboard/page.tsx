@@ -81,44 +81,52 @@ export default function Dashboard() {
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Form Templates</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="flex items-center justify-between pb-4">
+            <div className="flex items-center space-x-2">
+              <FileText className="h-5 w-5 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium">Form Templates</CardTitle>
+            </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="flex flex-col items-center justify-center">
             <div className="text-2xl font-bold">{dashboardData.formTemplatesCount}</div>
             <p className="text-xs text-muted-foreground">Available templates</p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Sent Tasks</CardTitle>
-            <Send className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="flex items-center justify-between pb-4">
+            <div className="flex items-center space-x-2">
+              <Send className="h-5 w-5 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium">Sent Tasks</CardTitle>
+            </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="flex flex-col items-center justify-center">
             <div className="text-2xl font-bold">{dashboardData.sentTasksCount}</div>
             <p className="text-xs text-muted-foreground">Tasks you've sent</p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Received Tasks</CardTitle>
-            <Inbox className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="flex items-center justify-between pb-4">
+            <div className="flex items-center space-x-2">
+              <Inbox className="h-5 w-5 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium">Received Tasks</CardTitle>
+            </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="flex flex-col items-center justify-center">
             <div className="text-2xl font-bold">{dashboardData.receivedTasksCount}</div>
             <p className="text-xs text-muted-foreground">Tasks to complete</p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="flex items-center justify-between pb-4">
+            <div className="flex items-center space-x-2">
+              <Clock className="h-5 w-5 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium">Pending</CardTitle>
+            </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="flex flex-col items-center justify-center">
             <div className="text-2xl font-bold">{dashboardData.pendingTasksCount}</div>
             <p className="text-xs text-muted-foreground">Tasks awaiting response</p>
           </CardContent>
@@ -138,10 +146,10 @@ export default function Dashboard() {
                 Browse Form Templates
               </Button>
             </Link>
-            <Link href="/dashboard/forms/create">
+            <Link href="/dashboard/sent">
               <Button className="w-full justify-start" variant="outline">
                 <Send className="mr-2 h-4 w-4" />
-                Create New Task
+                View Sent Tasks
               </Button>
             </Link>
             <Link href="/dashboard/received">

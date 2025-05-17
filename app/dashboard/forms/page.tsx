@@ -66,12 +66,6 @@ export default function FormsPage() {
           <h1 className="text-3xl font-bold tracking-tight">Form Templates</h1>
           <p className="text-muted-foreground mt-2">Browse and select from available task templates</p>
         </div>
-        <Link href="/dashboard/forms/create">
-          <Button>
-            <Plus className="mr-2 h-4 w-4" />
-            Create New Form
-          </Button>
-        </Link>
       </div>
 
       <div className="flex w-full max-w-sm items-center space-x-2">
