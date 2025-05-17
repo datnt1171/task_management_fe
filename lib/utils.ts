@@ -40,3 +40,26 @@ export const getStatusColor = (stateType: string) => {
       return "bg-gray-100 text-gray-800";
   }
 };
+
+export const getActionColor = (actionType: string) => {
+  switch (actionType.toLowerCase()) {
+    case "approve":
+      return "bg-green-100 text-green-800";
+    case "adjust":
+      return "bg-blue-100 text-blue-800";
+    case "reject":
+      return "bg-red-100 text-red-800";
+    case "complete":
+      return "bg-purple-100 text-purple-800";
+    case "confirm":
+      return "bg-yellow-100 text-yellow-800";
+    case "close":
+      return "bg-gray-100 text-gray-800";
+    case "cancel":
+      return "bg-orange-100 text-orange-800";
+    case "initial":
+      return "bg-teal-100 text-teal-800";
+    default:
+      return "bg-gray-100 text-gray-800";
+  }
+};

@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ArrowLeft, Calendar, User, Loader2, Clock } from "lucide-react"
 import { getTaskById, performTaskAction } from "@/lib/api-service"
-import { getStatusColor } from "@/lib/utils"
+import { getStatusColor, getActionColor } from "@/lib/utils"
 
 interface TaskData {
   field: {
@@ -218,11 +218,11 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
                 task.available_actions.map((action) => (
                   <Button
                     key={action.id}
-                    className="w-full justify-start mb-2"
+                    className={`w-full justify-start mb-2 ${getActionColor(action.type)}`}
                     variant="outline"
                     onClick={() => handleActionClick(action.id)}
                   >
-                    {action.name}
+                    {action.type}
                   </Button>
                 ))
               ) : (
