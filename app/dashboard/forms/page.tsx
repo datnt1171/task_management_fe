@@ -12,21 +12,14 @@ interface Process {
   id: number
   name: string
   description: string
+  version: number
   fields: Array<{
     id: number
     name: string
     field_type: string
+    order: number
     required: boolean
     options: string[] | null
-  }>
-  actions: Array<{
-    id: number
-    name: string
-    description: string
-    action_type: {
-      id: number
-      name: string
-    }
   }>
 }
 

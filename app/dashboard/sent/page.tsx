@@ -15,9 +15,7 @@ import { getStatusColor } from "@/lib/utils"
 interface Task {
   id: number
   title: string
-  process: {
-    name: string
-  }
+  process: string
   state: string
   state_type: string
   created_at: string
@@ -50,7 +48,7 @@ export default function SentTasksPage() {
   const filteredTasks = tasks.filter(
     (task) =>
       task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      task.process.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      task.process.toLowerCase().includes(searchQuery.toLowerCase()) ||
       task.recipient.toLowerCase().includes(searchQuery.toLowerCase()),
   )
 
@@ -121,7 +119,7 @@ export default function SentTasksPage() {
                       </Link>
                     </TableCell>
                     <TableCell>{task.recipient}</TableCell>
-                    <TableCell>{task.process.name}</TableCell>
+                    <TableCell>{task.process}</TableCell>
                     <TableCell>{new Date(task.created_at).toLocaleDateString()}</TableCell>
                     <TableCell>
                       <Badge variant="outline" className={getStatusColor(task.state_type)}>

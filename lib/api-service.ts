@@ -90,7 +90,7 @@ export const getTaskById = (id: string | number) => api.get(`/tasks/${id}/`)
 export const createTask = (data: any) => api.post("/tasks/", data)
 export const performTaskAction = (
   id: string | number,
-  actionData: { action_id: number }
+  actionData: { action_id: number; comment?: string }
 ) => api.post(`/tasks/${id}/actions/`, actionData)
 
 export default api

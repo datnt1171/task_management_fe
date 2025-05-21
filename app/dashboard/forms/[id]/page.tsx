@@ -17,9 +17,9 @@ interface Field {
   id: number
   name: string
   field_type: string
+  order: number
   required: boolean
   options: string[] | null
-  order: number
 }
 
 interface Process {

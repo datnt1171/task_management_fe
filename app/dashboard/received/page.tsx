@@ -15,9 +15,7 @@ import { formatDateToUTC7, getStatusColor } from "@/lib/utils"
 interface Task {
   id: number
   title: string
-  process: {
-    name: string
-  }
+  process: string
   state: string
   state_type: string
   created_at: string
@@ -51,7 +49,7 @@ export default function ReceivedTasksPage() {
   const filteredTasks = tasks.filter(
     (task) =>
       task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      task.process.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      task.process.toLowerCase().includes(searchQuery.toLowerCase()) ||
       task.created_by.toLowerCase().includes(searchQuery.toLowerCase()),
   )
 
@@ -114,7 +112,7 @@ export default function ReceivedTasksPage() {
                       </Link>
                     </TableCell>
                     <TableCell>{task.created_by}</TableCell>
-                    <TableCell>{task.process.name}</TableCell>
+                    <TableCell>{task.process}</TableCell>
                     <TableCell>
                       <Badge variant="outline" className={getStatusColor(task.state_type)}>
                         {task.state}

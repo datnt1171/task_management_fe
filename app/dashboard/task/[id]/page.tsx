@@ -30,7 +30,7 @@ interface ActionLog {
     description: string
     type: string
   }
-  timestamp: string
+  created_at: string
 }
 
 interface Task {
@@ -43,15 +43,35 @@ interface Task {
   state: {
     id: number
     name: string
-    state_type: string
+    type: string
   }
   created_by: {
     id: number
     username: string
   }
   created_at: string
-  task_data: TaskData[]
-  action_logs: ActionLog[]
+  data: Array<{
+    field: {
+      id: number
+      name: string
+    }
+    value: string
+  }>
+  action_logs: Array<{
+    id: number
+    user: {
+      id: number
+      username: string
+    }
+    action: {
+      id: number
+      name: string
+      description: string
+      type: string
+    }
+    created_at: string
+    comment?: string | null
+  }>
   available_actions: Array<{
     id: number
     name: string
@@ -65,6 +85,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
   const [task, setTask] = useState<Task | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [actionComment, setActionComment] = useState<string>("")
   const { id } = use(params)
   useEffect(() => {
     fetchTaskData()
@@ -86,8 +107,9 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
   const handleActionClick = async (actionId: number) => {
     if (!task) return
     try {
-      await performTaskAction(task.id, { action_id: actionId })
+      await performTaskAction(task.id, { action_id: actionId, comment: actionComment || undefined })
       alert(`Action performed successfully!`)
+      setActionComment("") // Clear the comment after successful action
       fetchTaskData() // Refresh task data after action
     } catch (err: any) {
       console.error("Error performing action:", err)
@@ -129,7 +151,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
           <h1 className="text-2xl font-bold tracking-tight">{task.title}</h1>
           <div className="flex items-center space-x-2 mt-1">
             <Badge variant="outline">{task.process.name}</Badge>
-            <Badge variant="outline" className={getStatusColor(task.state.state_type)}>
+            <Badge variant="outline" className={getStatusColor(task.state.type)}>
               {task.state.name}
             </Badge>
           </div>
@@ -143,7 +165,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
               <CardTitle>Task Details</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              {task.task_data.map((data) => (
+              {task.data.map((data) => (
                 <div key={data.field.id} className="space-y-2">
                   <label className="text-sm font-medium">{data.field.name}</label>
                   <div className="p-3 bg-muted rounded-md">
@@ -170,7 +192,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
                         <span className="font-medium">{log.user.username}</span>{" "}
                         <span className="text-muted-foreground">{log.action.description || log.action.name}</span>
                       </p>
-                      <p className="text-xs text-muted-foreground">{new Date(log.timestamp).toLocaleString()}</p>
+                      <p className="text-xs text-muted-foreground">{new Date(log.created_at).toLocaleString()}</p>
                     </div>
                   </div>
                 ))}
@@ -215,16 +237,24 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
             </CardHeader>
             <CardContent>
               {task.available_actions.length > 0 ? (
-                task.available_actions.map((action) => (
-                  <Button
-                    key={action.id}
-                    className={`w-full justify-start mb-2 ${getActionColor(action.type)}`}
-                    variant="outline"
-                    onClick={() => handleActionClick(action.id)}
-                  >
-                    {action.type}
-                  </Button>
-                ))
+                <>
+                  <textarea
+                    className="w-full p-2 border rounded-md mb-2"
+                    placeholder="Add a comment (optional)..."
+                    value={actionComment}
+                    onChange={(e) => setActionComment(e.target.value)}
+                  />
+                  {task.available_actions.map((action) => (
+                    <Button
+                      key={action.id}
+                      className={`w-full justify-start mb-2 ${getActionColor(action.type)}`}
+                      variant="outline"
+                      onClick={() => handleActionClick(action.id)}
+                    >
+                      {action.type}
+                    </Button>
+                  ))}
+                </>
               ) : (
                 <p className="text-sm text-muted-foreground">No actions available for this task.</p>
               )}
