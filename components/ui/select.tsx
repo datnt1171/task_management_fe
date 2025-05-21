@@ -37,14 +37,6 @@ export function Select({ value, onValueChange, children, placeholder, disabled, 
     }
   }, [])
 
-  // Extract the selected item's label
-  const selectedItem = React.Children.toArray(children).find(
-    (child): child is React.ReactElement<SelectItemProps> => 
-      React.isValidElement<React.ReactElement<SelectItemProps>>(child) && 'value' in child.props,
-  )
-
-  const selectedLabel = selectedItem ? selectedItem.props.children : placeholder
-
   return (
     <div ref={ref} className={`relative ${className}`}>
       <button
@@ -55,7 +47,9 @@ export function Select({ value, onValueChange, children, placeholder, disabled, 
         }`}
         disabled={disabled}
       >
-        <span className={!value ? "text-gray-400" : ""}>{selectedLabel || placeholder}</span>
+        <span className={!value ? "text-gray-400" : ""}>
+          {value || placeholder || "Select an option"}
+        </span>
         <ChevronDown className="h-4 w-4 opacity-50" />
       </button>
       {open && (
@@ -77,23 +71,11 @@ export function Select({ value, onValueChange, children, placeholder, disabled, 
   )
 }
 
-export function SelectTrigger({ children }: { children: React.ReactNode }) {
-  return <>{children}</>
-}
-
-export function SelectValue({ placeholder }: { placeholder?: string }) {
-  return <span>{placeholder}</span>
-}
-
-export function SelectContent({ children }: { children: React.ReactNode }) {
-  return <>{children}</>
-}
-
-export function SelectItem({ value, children, className = "", ...props }: SelectItemProps & { onSelect?: () => void }) {
+export function SelectItem({ value, children, className = "", onSelect }: SelectItemProps) {
   return (
     <div
-      className={`relative flex cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-gray-100 ${className}`}
-      onClick={(props as any).onSelect}
+      className={`relative flex cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-gray-100 ${className}`}
+      onClick={onSelect}
     >
       {children}
     </div>

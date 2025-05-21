@@ -77,7 +77,7 @@ export const logout = () => api.post("/auth/logout")
 
 // User endpoints
 export const getCurrentUser = () => api.get("/users/me")
-export const getUsers = () => api.get("/users")
+export const getUsers = () => api.get("/users/")
 
 // Process/Form Template endpoints
 export const getProcesses = () => api.get("/processes/")

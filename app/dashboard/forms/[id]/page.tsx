@@ -7,7 +7,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Select, SelectItem } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
 import { ArrowLeft, Save, Send, Loader2, Eye } from "lucide-react"
 import Link from "next/link"
@@ -34,14 +34,6 @@ interface User {
   username: string
   first_name?: string
   last_name?: string
-  department?: {
-    id: number
-    name: string
-  }
-  role?: {
-    id: number
-    name: string
-  }
 }
 
 export default function FormPage({ params }: { params: Promise<{ id: string }> }) {
@@ -54,7 +46,6 @@ export default function FormPage({ params }: { params: Promise<{ id: string }> }
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [formValues, setFormValues] = useState<Record<string, any>>({})
-  const [title, setTitle] = useState("")
   const [showReview, setShowReview] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -72,7 +63,7 @@ export default function FormPage({ params }: { params: Promise<{ id: string }> }
         }
 
         setProcess(processData)
-        setUsers(usersResponse.data.results || [])
+        setUsers(usersResponse.data || []) // Correctly set the users state
       } catch (err: any) {
         console.error("Error fetching data:", err)
         setError(err.response?.data?.error || "Failed to load form data")
@@ -104,11 +95,6 @@ export default function FormPage({ params }: { params: Promise<{ id: string }> }
       return
     }
 
-    if (!title) {
-      alert("Please enter a task title")
-      return
-    }
-
     setShowReview(true)
   }
 
@@ -121,7 +107,6 @@ export default function FormPage({ params }: { params: Promise<{ id: string }> }
       // Format the data for the API
       const taskData = {
         process: process?.id,
-        title: title,
         // If we have an assignee field, use its value
         ...(assigneeField && formValues[assigneeField.id] && { assignee: formValues[assigneeField.id] }),
         fields: Object.entries(formValues)
@@ -159,16 +144,11 @@ export default function FormPage({ params }: { params: Promise<{ id: string }> }
             onValueChange={(value) => handleInputChange(field.id, value)}
             disabled={showReview}
           >
-            <SelectTrigger>
-              <SelectValue placeholder="Select a user" />
-            </SelectTrigger>
-            <SelectContent>
-              {users.map((user) => (
-                <SelectItem key={user.id} value={user.id.toString()}>
-                  {user.username} {user.department ? `(${user.department.name})` : ""}
-                </SelectItem>
-              ))}
-            </SelectContent>
+            {users.map((user) => (
+              <SelectItem key={user.id} value={user.id.toString()}>
+                {user.first_name} {user.last_name} ({user.username})
+              </SelectItem>
+            ))}
           </Select>
         )
       case "text":
@@ -220,16 +200,11 @@ export default function FormPage({ params }: { params: Promise<{ id: string }> }
             onValueChange={(value) => handleInputChange(field.id, value)}
             disabled={showReview}
           >
-            <SelectTrigger>
-              <SelectValue placeholder="Select an option" />
-            </SelectTrigger>
-            <SelectContent>
-              {(field.options || []).map((option: string) => (
-                <SelectItem key={option} value={option}>
-                  {option}
-                </SelectItem>
-              ))}
-            </SelectContent>
+            {(field.options || []).map((option: string) => (
+              <SelectItem key={option} value={option}>
+                {option}
+              </SelectItem>
+            ))}
           </Select>
         )
       case "checkbox":
@@ -326,10 +301,6 @@ export default function FormPage({ params }: { params: Promise<{ id: string }> }
             <CardTitle>Review Task</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label>Task Title</Label>
-              <div className="p-3 bg-muted rounded-md">{title}</div>
-            </div>
 
             {sortedFields.map((field) => (
               <div key={field.id} className="space-y-2">
@@ -368,16 +339,6 @@ export default function FormPage({ params }: { params: Promise<{ id: string }> }
           </CardHeader>
           <form onSubmit={handleReview}>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="title">Task Title</Label>
-                <Input
-                  id="title"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="Enter a title for this task"
-                  required
-                />
-              </div>
 
               {sortedFields.map((field) => (
                 <div key={field.id} className="space-y-2">
