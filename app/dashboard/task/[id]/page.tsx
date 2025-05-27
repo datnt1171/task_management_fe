@@ -14,6 +14,7 @@ interface TaskData {
   field: {
     id: number
     name: string
+    type: string
   }
   value: string
 }
@@ -31,6 +32,7 @@ interface ActionLog {
     type: string
   }
   created_at: string
+  comment: string
 }
 
 interface Task {
@@ -50,28 +52,8 @@ interface Task {
     username: string
   }
   created_at: string
-  data: Array<{
-    field: {
-      id: number
-      name: string
-    }
-    value: string
-  }>
-  action_logs: Array<{
-    id: number
-    user: {
-      id: number
-      username: string
-    }
-    action: {
-      id: number
-      name: string
-      description: string
-      type: string
-    }
-    created_at: string
-    comment?: string | null
-  }>
+  data: Array<TaskData>
+  action_logs: Array<ActionLog>
   available_actions: Array<{
     id: number
     name: string
@@ -192,6 +174,9 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
                         <span className="font-medium">{log.user.username}</span>{" "}
                         <span className="text-muted-foreground">{log.action.description || log.action.name}</span>
                       </p>
+                      {log.comment && (
+                        <p className="text-xs text-muted-foreground">Comment: {log.comment}</p>
+                      )}
                       <p className="text-xs text-muted-foreground">{new Date(log.created_at).toLocaleString()}</p>
                     </div>
                   </div>

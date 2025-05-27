@@ -112,7 +112,7 @@ export default function DashboardLayout({
       <div className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0">
         <div className="flex flex-col flex-grow border-r border-gray-200 bg-white pt-5 overflow-y-auto">
           <div className="flex items-center flex-shrink-0 px-4 mb-5">
-            <h1 className="text-xl font-bold">TaskFlow</h1>
+            <h1 className="text-xl font-bold">Task Management</h1>
           </div>
           <div className="mt-5 flex-grow flex flex-col">
             <nav className="flex-1 px-2 space-y-1">
@@ -154,7 +154,7 @@ export default function DashboardLayout({
           <div className="relative flex-1 flex flex-col max-w-xs w-full bg-white">
             <div className="flex-1 h-0 pt-5 pb-4 overflow-y-auto">
               <div className="flex-shrink-0 flex items-center px-4">
-                <h1 className="text-xl font-bold">TaskFlow</h1>
+                <h1 className="text-xl font-bold">Task Management</h1>
               </div>
               <nav className="mt-5 px-2 space-y-1">
                 {navItems.map((item) => (
