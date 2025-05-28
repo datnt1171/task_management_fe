@@ -68,6 +68,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [actionComment, setActionComment] = useState<string>("")
+  const [actionLoading, setActionLoading] = useState<number | null>(null)
   const { id } = use(params)
   useEffect(() => {
     fetchTaskData()
@@ -88,6 +89,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
 
   const handleActionClick = async (actionId: number) => {
     if (!task) return
+    setActionLoading(actionId)
     try {
       await performTaskAction(task.id, { action_id: actionId, comment: actionComment || undefined })
       alert(`Action performed successfully!`)
@@ -96,6 +98,8 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
     } catch (err: any) {
       console.error("Error performing action:", err)
       alert(err.response?.data?.error || "Failed to perform action")
+    } finally {
+      setActionLoading(null)
     }
   }
 
@@ -235,8 +239,16 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
                       className={`w-full justify-start mb-2 ${getActionColor(action.type)}`}
                       variant="outline"
                       onClick={() => handleActionClick(action.id)}
+                      disabled={actionLoading !== null}
                     >
-                      {action.type}
+                      {actionLoading === action.id ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Processing...
+                        </>
+                      ) : (
+                        action.type
+                      )}
                     </Button>
                   ))}
                 </>
