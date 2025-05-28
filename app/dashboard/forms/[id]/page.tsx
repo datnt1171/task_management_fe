@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectItem } from "@/components/ui/select"
+import { Assignee, AssigneeTrigger, AssigneeValue, AssigneeContent, AssigneeItem } from "@/components/ui/assignee"
 import { Checkbox } from "@/components/ui/checkbox"
 import { ArrowLeft, Save, Send, Loader2, Eye } from "lucide-react"
 import Link from "next/link"
@@ -37,9 +38,7 @@ interface User {
 }
 
 export default function FormPage({ params }: { params: Promise<{ id: string }> }) {
-  // Unwrap params using React.use()
   const { id } = use(params)
-
   const router = useRouter()
   const [process, setProcess] = useState<Process | null>(null)
   const [users, setUsers] = useState<User[]>([])
@@ -55,12 +54,7 @@ export default function FormPage({ params }: { params: Promise<{ id: string }> }
       try {
         // Fetch process and users in parallel
         const [processResponse, usersResponse] = await Promise.all([getProcessById(id), getUsers()])
-
-        // Sort fields by order
         const processData = processResponse.data
-        if (processData.fields) {
-          processData.fields.sort((a: Field, b: Field) => a.order - b.order)
-        }
 
         setProcess(processData)
         setUsers(usersResponse.data || []) // Correctly set the users state
@@ -101,25 +95,13 @@ export default function FormPage({ params }: { params: Promise<{ id: string }> }
   const handleSubmit = async () => {
     setIsSubmitting(true)
     try {
-      // Find assignee field if it exists
-      const assigneeField = process?.fields.find((field) => field.field_type === "assignee")
-
       // Format the data for the API
       const taskData = {
         process: process?.id,
-        // If we have an assignee field, use its value
-        ...(assigneeField && formValues[assigneeField.id] && { assignee: formValues[assigneeField.id] }),
-        fields: Object.entries(formValues)
-          // Filter out assignee fields as they're handled separately
-          .filter(([key, _]) => {
-            const fieldId = Number.parseInt(key)
-            const field = process?.fields.find((f) => f.id === fieldId)
-            return field && field.field_type !== "assignee"
-          })
-          .map(([key, value]) => ({
-            field_id: key,
-            value: value,
-          })),
+        fields: Object.entries(formValues).map(([key, value]) => ({
+          field_id: key,
+          value: value,
+        })),
       }
 
       // Submit the task
@@ -137,20 +119,35 @@ export default function FormPage({ params }: { params: Promise<{ id: string }> }
 
   const renderField = (field: Field) => {
     switch (field.field_type) {
-      case "assignee":
+      case "assignee": {
         return (
-          <Select
+          <Assignee
             value={formValues[field.id] || ""}
             onValueChange={(value) => handleInputChange(field.id, value)}
             disabled={showReview}
           >
-            {users.map((user) => (
-              <SelectItem key={user.id} value={user.id.toString()}>
-                {user.first_name} {user.last_name} ({user.username})
-              </SelectItem>
-            ))}
-          </Select>
-        )
+            <AssigneeTrigger>
+              {/* Add formatDisplay to convert ID to username */}
+              <AssigneeValue 
+                placeholder="Select a user"
+                formatDisplay={(value) => {
+                  const user = users.find(u => u.id.toString() === value);
+                  return user 
+                    ? `${user.first_name} ${user.last_name} (${user.username})` 
+                    : value;
+                }}
+              />
+            </AssigneeTrigger>
+            <AssigneeContent>
+              {users.map((user) => (
+                <AssigneeItem key={user.id} value={user.id.toString()}>
+                  {user.first_name} {user.last_name} ({user.username})
+                </AssigneeItem>
+              ))}
+            </AssigneeContent>
+          </Assignee>
+        );
+      }
       case "text":
         return (
           <Input
@@ -279,9 +276,6 @@ export default function FormPage({ params }: { params: Promise<{ id: string }> }
     )
   }
 
-  // Sort fields by order
-  const sortedFields = [...process.fields].sort((a, b) => a.order - b.order)
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -302,7 +296,8 @@ export default function FormPage({ params }: { params: Promise<{ id: string }> }
           </CardHeader>
           <CardContent className="space-y-4">
 
-            {sortedFields.map((field) => (
+            {/* Use process.fields directly */}
+            {process.fields.map((field) => (
               <div key={field.id} className="space-y-2">
                 <Label>
                   {field.name}
@@ -340,7 +335,8 @@ export default function FormPage({ params }: { params: Promise<{ id: string }> }
           <form onSubmit={handleReview}>
             <CardContent className="space-y-4">
 
-              {sortedFields.map((field) => (
+              {/* Use process.fields directly */}
+              {process.fields.map((field) => (
                 <div key={field.id} className="space-y-2">
                   <Label htmlFor={`field-${field.id}`}>
                     {field.name}
