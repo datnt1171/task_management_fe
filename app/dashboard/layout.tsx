@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, createContext } from "react"
 import { usePathname, useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -12,8 +12,9 @@ import { getCurrentUser, logout, refreshToken } from "@/lib/api-service"
 interface User {
   id: number
   username: string
-  first_name?: string
-  last_name?: string
+  first_name: string
+  last_name: string
+  email: string
   department?: {
     id: number
     name: string
@@ -22,7 +23,15 @@ interface User {
     id: number
     name: string
   }
+  supervisor?: {
+    id: number
+    username: string
+    first_name: string
+    last_name: string
+  }
 }
+
+export const UserContext = createContext<User | null>(null)
 
 export default function DashboardLayout({
   children,
@@ -95,78 +104,37 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      {/* Mobile menu button */}
-      <div className="fixed top-4 left-4 z-50 md:hidden">
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          aria-label="Toggle menu"
-        >
-          {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </Button>
-      </div>
-
-      {/* Sidebar for desktop */}
-      <div className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0">
-        <div className="flex flex-col flex-grow border-r border-gray-200 bg-white pt-5 overflow-y-auto">
-          <div className="flex items-center flex-shrink-0 px-4 mb-5">
-            <h1 className="text-xl font-bold">Task Management</h1>
-          </div>
-          <div className="mt-5 flex-grow flex flex-col">
-            <nav className="flex-1 px-2 space-y-1">
-              {navItems.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
-                    pathname === item.href
-                      ? "bg-gray-100 text-gray-900"
-                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                  }`}
-                >
-                  {item.icon}
-                  {item.label}
-                </Link>
-              ))}
-            </nav>
-          </div>
-          <div className="flex-shrink-0 flex border-t border-gray-200 p-4">
-            <div className="flex items-center">
-              <div>
-                <p className="text-sm font-medium text-gray-700">{user?.username || "User"}</p>
-                <p className="text-xs text-gray-500">{user?.department?.name || user?.role?.name || ""}</p>
-              </div>
-            </div>
-            <Button variant="ghost" className="ml-auto" size="sm" onClick={handleLogout}>
-              <LogOut className="h-4 w-4 mr-2" />
-              Logout
-            </Button>
-          </div>
+    <UserContext.Provider value={user}>
+      <div className="flex min-h-screen bg-gray-50">
+        {/* Mobile menu button */}
+        <div className="fixed top-4 left-4 z-50 md:hidden">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            aria-label="Toggle menu"
+          >
+            {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </Button>
         </div>
-      </div>
 
-      {/* Mobile menu */}
-      {isMobileMenuOpen && (
-        <div className="fixed inset-0 z-40 md:hidden">
-          <div className="fixed inset-0 bg-gray-600 bg-opacity-75" onClick={() => setIsMobileMenuOpen(false)}></div>
-          <div className="relative flex-1 flex flex-col max-w-xs w-full bg-white">
-            <div className="flex-1 h-0 pt-5 pb-4 overflow-y-auto">
-              <div className="flex-shrink-0 flex items-center px-4">
-                <h1 className="text-xl font-bold">Task Management</h1>
-              </div>
-              <nav className="mt-5 px-2 space-y-1">
+        {/* Sidebar for desktop */}
+        <div className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0">
+          <div className="flex flex-col flex-grow border-r border-gray-200 bg-white pt-5 overflow-y-auto">
+            <div className="flex items-center flex-shrink-0 px-4 mb-5">
+              <h1 className="text-xl font-bold">Task Management</h1>
+            </div>
+            <div className="mt-5 flex-grow flex flex-col">
+              <nav className="flex-1 px-2 space-y-1">
                 {navItems.map((item) => (
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`group flex items-center px-2 py-2 text-base font-medium rounded-md ${
+                    className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
                       pathname === item.href
                         ? "bg-gray-100 text-gray-900"
                         : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                     }`}
-                    onClick={() => setIsMobileMenuOpen(false)}
                   >
                     {item.icon}
                     {item.label}
@@ -175,12 +143,12 @@ export default function DashboardLayout({
               </nav>
             </div>
             <div className="flex-shrink-0 flex border-t border-gray-200 p-4">
-              <div className="flex items-center">
+              <Link href="/dashboard/user" className="flex items-center w-full">
                 <div>
                   <p className="text-sm font-medium text-gray-700">{user?.username || "User"}</p>
                   <p className="text-xs text-gray-500">{user?.department?.name || user?.role?.name || ""}</p>
                 </div>
-              </div>
+              </Link>
               <Button variant="ghost" className="ml-auto" size="sm" onClick={handleLogout}>
                 <LogOut className="h-4 w-4 mr-2" />
                 Logout
@@ -188,12 +156,55 @@ export default function DashboardLayout({
             </div>
           </div>
         </div>
-      )}
 
-      {/* Main content */}
-      <div className="md:pl-64 flex flex-col flex-1">
-        <main className="flex-1 p-4 md:p-6">{children}</main>
+        {/* Mobile menu */}
+        {isMobileMenuOpen && (
+          <div className="fixed inset-0 z-40 md:hidden">
+            <div className="fixed inset-0 bg-gray-600 bg-opacity-75" onClick={() => setIsMobileMenuOpen(false)}></div>
+            <div className="relative flex-1 flex flex-col max-w-xs w-full bg-white">
+              <div className="flex-1 h-0 pt-5 pb-4 overflow-y-auto">
+                <div className="flex-shrink-0 flex items-center px-4">
+                  <h1 className="text-xl font-bold">Task Management</h1>
+                </div>
+                <nav className="mt-5 px-2 space-y-1">
+                  {navItems.map((item) => (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={`group flex items-center px-2 py-2 text-base font-medium rounded-md ${
+                        pathname === item.href
+                          ? "bg-gray-100 text-gray-900"
+                          : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                      }`}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      {item.icon}
+                      {item.label}
+                    </Link>
+                  ))}
+                </nav>
+              </div>
+              <div className="flex-shrink-0 flex border-t border-gray-200 p-4">
+                <Link href="/dashboard/user" className="flex items-center w-full">
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">{user?.username || "User"}</p>
+                    <p className="text-xs text-gray-500">{user?.department?.name || user?.role?.name || ""}</p>
+                  </div>
+                </Link>
+                <Button variant="ghost" className="ml-auto" size="sm" onClick={handleLogout}>
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Logout
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Main content */}
+        <div className="md:pl-64 flex flex-col flex-1">
+          <main className="flex-1 p-4 md:p-6">{children}</main>
+        </div>
       </div>
-    </div>
+    </UserContext.Provider>
   )
 }
