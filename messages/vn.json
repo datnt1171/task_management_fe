@@ -1,0 +1,13 @@
+{
+  "HomePage": {
+    "title": "xin chao",
+    "about": "Đi đến trang giới thiệu"
+  },
+  "LoginPage":{
+    "title": "Đăng nhập",
+    "subtitle": "Tên đăng nhập",
+    "password": "密码",
+    "loginButton": "登录",
+    "forgotPassword": "忘记密码？"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "DashBoard": {
+    "title": "你好，世界！",
+    "about": "去关于页面"
+  },
+  "LoginPage":{
+    "title": "登录",
+    "subtitle": "用户名",
+    "password": "密码",
+    "loginButton": "登录",
+    "forgotPassword": "忘记密码？"
+  }
+}

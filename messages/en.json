@@ -1,0 +1,13 @@
+{
+  "HomePage": {
+    "title": "Hello world!",
+    "about": "Go to the about page"
+  },
+  "LoginPage":{
+    "title": "login",
+    "subtitle": "Login name",
+    "password": "密码",
+    "loginButton": "登录",
+    "forgotPassword": "忘记密码？"
+  }
+}
