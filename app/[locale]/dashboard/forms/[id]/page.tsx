@@ -11,7 +11,7 @@ import { Select, SelectItem } from "@/components/ui/select"
 import { Assignee, AssigneeTrigger, AssigneeValue, AssigneeContent, AssigneeItem } from "@/components/ui/assignee"
 import { Checkbox } from "@/components/ui/checkbox"
 import { ArrowLeft, Save, Send, Loader2, Eye } from "lucide-react"
-import Link from "next/link"
+import { Link } from "@/i18n/navigation";
 import { getProcessById, getUsers, createTask } from "@/lib/api-service"
 
 interface Field {
