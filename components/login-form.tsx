@@ -7,7 +7,7 @@ import { login } from "@/lib/api-service"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 
 interface LoginFormClientProps {
   translations: {
@@ -40,7 +40,7 @@ export function LoginFormClient({ translations }: LoginFormClientProps) {
 
       // Store user info in localStorage (non-sensitive data only)
       localStorage.setItem("user", JSON.stringify({ username: response.data.user.username }))
-      router.push("/dashboard")
+      router.push("/dashboard/forms")
     } catch (err: any) {
       // Suppress Axios error from propagating to the console
       if (err.response?.status === 401) {
