@@ -2,5 +2,17 @@
   "HomePage": {
     "title": "xin chaop",
     "about": "toi trang about"
+  },
+  "login": {
+    "title": "Quản lý công việc",
+    "Login": "Đăng nhập",
+    "username": "Tên đăng nhập",
+    "password": "Mật khẩu",
+    "usernamePlaceholder": "Nhập tên đăng nhập",
+    "passwordPlaceholder": "Nhập mật khẩu",
+    "loginButton": "Đăng nhập",
+    "loggingIn": "Đang đăng nhập...",
+    "authError": "Tên đăng nhập hoặc mật khẩu không đúng.",
+    "footerText": "© TE-1 --- Viet Lien"
   }
 }

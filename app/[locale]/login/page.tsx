@@ -1,14 +1,27 @@
-import LoginForm from "@/components/login-form"
+import { getTranslations } from 'next-intl/server';
+import { LoginFormClient } from '@/components/login-form';
 
-export default function LoginPage() {
+export default async function LoginPage() {
+  const t = await getTranslations('login');
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="w-full max-w-md space-y-8">
         <div className="text-center">
-          <h1 className="text-3xl font-bold">Task Management System</h1>
-          <h2 className="mt-6 text-2xl font-bold tracking-tight">Sign in to your account</h2>
+          <h1 className="text-3xl font-bold">{t('title')}</h1>
         </div>
-        <LoginForm />
+        <LoginFormClient
+          translations={{
+            Login: t('Login'),
+            username: t('username'),
+            password: t('password'),
+            usernamePlaceholder: t('usernamePlaceholder'),
+            passwordPlaceholder: t('passwordPlaceholder'),
+            loginButton: t('loginButton'),
+            loggingIn: t('loggingIn'),
+            authError: t('authError'),
+            footerText: t('footerText')
+          }}
+        />
       </div>
     </div>
   )
