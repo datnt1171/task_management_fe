@@ -7,22 +7,21 @@ import { routing } from './i18n/routing';
 const intlMiddleware = createMiddleware(routing);
 
 export function middleware(request: NextRequest) {
-  const response = intlMiddleware(request);
   const { pathname } = request.nextUrl;
 
-  // Extract the potential locale from the pathname
+  // Run the next-intl middleware first to handle locale redirects (e.g., / → /en)
+  const response = intlMiddleware(request);
+
+  // Extract the potential locale from the pathname (e.g., "/en/login" → "en")
   const segments = pathname.split('/');
   const potentialLocale = segments[1];
 
-  // Type guard function to validate locale
-  const isValidLocale = (locale: string): locale is 'en' | 'vn' => 
-    routing.locales.includes(locale as 'en' | 'vn');
-
-  // Only apply custom logic if the pathname starts with a valid locale
-  if (isValidLocale(potentialLocale)) {
+  // Check if the pathname starts with a valid locale
+  if (routing.locales.includes(potentialLocale as 'en' | 'vn' | 'cn')) {
     const locale = potentialLocale;
+
     // Calculate path without locale (e.g., "/en/login" → "/login")
-    const pathWithoutLocale = segments.length > 2 ? '/' + segments.slice(2).join('/') : '/';
+    const pathWithoutLocale = pathname.replace(new RegExp(`^/${locale}(/|$)`), '/');
 
     const token = request.cookies.get('access_token')?.value;
 
@@ -40,7 +39,7 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  // If no valid locale or no redirect needed, return the intlMiddleware response
+  // Return the intlMiddleware response for all other cases
   return response;
 }
 

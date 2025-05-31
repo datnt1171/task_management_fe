@@ -32,10 +32,13 @@ api.interceptors.response.use(
     const originalRequest = error.config
 
     if (error.response?.status === 401 && !originalRequest._retry) {
-      if (typeof window !== "undefined" && window.location.pathname === "/login") {
-        // Skip refresh if the user is on the login page
-        return Promise.reject(error)
-      }
+      if (
+          originalRequest.url?.includes('/auth/login') || 
+          originalRequest.url?.includes('/auth/refresh') ||
+          originalRequest.url?.includes('/auth/logout')
+        ) {
+          return Promise.reject(error)
+        }
 
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
