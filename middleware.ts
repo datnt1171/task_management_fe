@@ -1,34 +1,41 @@
-import { NextResponse } from "next/server"
-import type { NextRequest } from "next/server"
+import createMiddleware from 'next-intl/middleware';
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+import { routing } from './i18n/routing';
+
+// Create the base next-intl middleware
+const intlMiddleware = createMiddleware(routing);
 
 export function middleware(request: NextRequest) {
-  // Get the pathname of the request
-  const path = request.nextUrl.pathname
+  const response = intlMiddleware(request);
+  const token = request.cookies.get('access_token')?.value;
 
-  // Get the token from cookies
-  const token = request.cookies.get("access_token")?.value
+  const { pathname } = request.nextUrl;
 
-  // Define public paths that don't require authentication
-  const publicPaths = ["/", "/login"]
+  // Extract the locale (e.g. "/en/dashboard" → "en")
+  const locale = pathname.split('/')[1];
+  const pathWithoutLocale = pathname.replace(`/${locale}`, '') || '/';
 
-  // Check if the path is public
-  const isPublicPath = publicPaths.includes(path)
+  // Define public paths (e.g. "/en/login" or "/vn/login")
+  const isPublicPath = ['/', '/login'].includes(pathWithoutLocale);
 
-  // If no token and trying to access a protected route, redirect to login
+  // Redirect if no token and accessing a protected route
   if (!token && !isPublicPath) {
-    return NextResponse.redirect(new URL("/login", request.url))
+    return NextResponse.redirect(new URL(`/${locale}/login`, request.url));
   }
 
-  // If token exists and trying to access login page, redirect to dashboard
+  // Redirect if token exists but accessing public path (e.g. login)
   if (token && isPublicPath) {
-    return NextResponse.redirect(new URL("/dashboard", request.url))
+    return NextResponse.redirect(new URL(`/${locale}/dashboard`, request.url));
   }
 
-  // Allow the request to continue
-  return NextResponse.next()
+  return response;
 }
 
-// Configure which paths should trigger this middleware
 export const config = {
-  matcher: ["/", "/login", "/dashboard/:path*"],
-}
+  // Matches all paths except:
+  // - static files
+  // - API routes
+  // - _next, _vercel, etc.
+  matcher: '/((?!api|trpc|_next|_vercel|.*\\..*).*)',
+};

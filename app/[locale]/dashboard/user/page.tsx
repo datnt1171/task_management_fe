@@ -4,8 +4,8 @@ import { useContext } from "react";
 import { UserContext } from "../layout";
 import { UserProfileCard } from "@/components/user-profile-card";
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { Link } from "@/i18n/navigation";
+import { useRouter } from "@/i18n/navigation";
 
 export default function UserProfilePage() {
   const user = useContext(UserContext);

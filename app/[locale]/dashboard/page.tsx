@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import Link from "next/link"
+import { Link } from "@/i18n/navigation"
 import { FileText, Send, Inbox, Clock, Loader2 } from "lucide-react"
 import { getProcesses, getSentTasks, getReceivedTasks } from "@/lib/api-service"
 

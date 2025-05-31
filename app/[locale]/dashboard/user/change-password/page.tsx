@@ -5,7 +5,7 @@ import { changePassword } from "@/lib/api-service";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 
 export default function ChangePasswordPage() {
   const [current_password, setCurrentPassword] = useState("");

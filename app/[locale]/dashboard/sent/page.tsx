@@ -1,16 +1,16 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import Link from "next/link"
+import { Link } from "@/i18n/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
-import { Search, MoreHorizontal, Loader2 } from "lucide-react"
-import { getReceivedTasks } from "@/lib/api-service"
-import { formatDateToUTC7, getStatusColor } from "@/lib/utils"
+import { Search, MoreHorizontal, Plus, Loader2 } from "lucide-react"
+import { getSentTasks } from "@/lib/api-service"
+import { getStatusColor } from "@/lib/utils"
 
 interface Task {
   id: number
@@ -19,28 +19,27 @@ interface Task {
   state: string
   state_type: string
   created_at: string
-  created_by: string
-  action?: string
+  recipient: string
 }
 
-export default function ReceivedTasksPage() {
+export default function SentTasksPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [tasks, setTasks] = useState<Task[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    fetchReceivedTasks()
+    fetchSentTasks()
   }, [])
 
-  const fetchReceivedTasks = async () => {
+  const fetchSentTasks = async () => {
     setIsLoading(true)
     try {
-      const response = await getReceivedTasks()
+      const response = await getSentTasks()
       setTasks(response.data.results)
     } catch (err: any) {
-      console.error("Error fetching received tasks:", err)
-      setError(err.response?.data?.error || "Failed to load received tasks")
+      console.error("Error fetching sent tasks:", err)
+      setError(err.response?.data?.error || "Failed to load sent tasks")
     } finally {
       setIsLoading(false)
     }
@@ -50,14 +49,22 @@ export default function ReceivedTasksPage() {
     (task) =>
       task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       task.process.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      task.created_by.toLowerCase().includes(searchQuery.toLowerCase()),
+      task.recipient.toLowerCase().includes(searchQuery.toLowerCase()),
   )
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Received Tasks</h1>
-        <p className="text-muted-foreground mt-2">View and complete tasks assigned to you</p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Sent Tasks</h1>
+          <p className="text-muted-foreground mt-2">View and manage tasks you've sent to others</p>
+        </div>
+        <Link href="/dashboard/forms">
+          <Button>
+            <Plus className="mr-2 h-4 w-4" />
+            Create New Task
+          </Button>
+        </Link>
       </div>
 
       <div className="flex w-full max-w-sm items-center space-x-2">
@@ -76,30 +83,30 @@ export default function ReceivedTasksPage() {
       {isLoading ? (
         <div className="flex flex-col items-center justify-center py-12">
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mb-4" />
-          <p className="text-muted-foreground">Loading received tasks...</p>
+          <p className="text-muted-foreground">Loading sent tasks...</p>
         </div>
       ) : error ? (
         <div className="flex flex-col items-center justify-center py-12 text-center">
           <h3 className="text-lg font-medium text-destructive">Error loading tasks</h3>
           <p className="text-muted-foreground mt-2">{error}</p>
-          <Button variant="outline" className="mt-4" onClick={fetchReceivedTasks}>
+          <Button variant="outline" className="mt-4" onClick={fetchSentTasks}>
             Try Again
           </Button>
         </div>
       ) : (
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle>Your Assigned Tasks</CardTitle>
+            <CardTitle>Your Sent Tasks</CardTitle>
           </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Title</TableHead>
-                  <TableHead>From</TableHead>
+                  <TableHead>Recipient</TableHead>
                   <TableHead>Form Type</TableHead>
+                  <TableHead>Sent Date</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Created At</TableHead>
                   <TableHead className="w-[50px]"></TableHead>
                 </TableRow>
               </TableHeader>
@@ -111,14 +118,14 @@ export default function ReceivedTasksPage() {
                         {task.title}
                       </Link>
                     </TableCell>
-                    <TableCell>{task.created_by}</TableCell>
+                    <TableCell>{task.recipient}</TableCell>
                     <TableCell>{task.process}</TableCell>
+                    <TableCell>{new Date(task.created_at).toLocaleDateString()}</TableCell>
                     <TableCell>
                       <Badge variant="outline" className={getStatusColor(task.state_type)}>
                         {task.state}
                       </Badge>
                     </TableCell>
-                    <TableCell>{formatDateToUTC7(task.created_at)}</TableCell>
                     <TableCell>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -131,6 +138,8 @@ export default function ReceivedTasksPage() {
                           <DropdownMenuItem>
                             <Link href={`/dashboard/task/${task.id}`}>View Details</Link>
                           </DropdownMenuItem>
+                          <DropdownMenuItem>Send Reminder</DropdownMenuItem>
+                          <DropdownMenuItem>Duplicate</DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
@@ -142,7 +151,7 @@ export default function ReceivedTasksPage() {
             {filteredTasks.length === 0 && (
               <div className="flex flex-col items-center justify-center py-12 text-center">
                 <h3 className="text-lg font-medium">No tasks found</h3>
-                <p className="text-muted-foreground mt-2">You don't have any tasks assigned to you.</p>
+                <p className="text-muted-foreground mt-2">Try adjusting your search or create a new task.</p>
               </div>
             )}
           </CardContent>
