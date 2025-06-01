@@ -14,5 +14,47 @@
     "loggingIn": "登入中...",
     "authError": "使用者名稱或密碼錯誤。",
     "footerText": "© TE-1 --- Viet Lien"
+  },
+  "dashboard": {
+    "title": "任務管理",
+    "navigation": {
+      "dashboard": "儀表板",
+      "formTemplates": "表單範本",
+      "sentTasks": "已發送任務",
+      "receivedTasks": "已接收任務"
+    },
+    "userMenu": {
+      "profile": "個人資料",
+      "logout": "登出"
+    },
+    "externalApps": {
+      "apps": "應用程式",
+      "crmSystem": "CRM 系統",
+      "hrPortal": "人力資源入口",
+      "financeApp": "財務應用程式",
+      "reports": "報表"
+    },
+    "languages": {
+      "english": "English",
+      "vietnamese": "Tiếng Việt"
+    },
+    "loading": "載入中...",
+    "welcome": "歡迎來到您的儀表板。",
+    "formTemplates": "表單範本",
+    "sentTasks": "已發送任務",
+    "receivedTasks": "已接收任務",
+    "pending": "待處理",
+    "availableTemplates": "可用範本",
+    "tasksSent": "您已發送的任務",
+    "tasksToComplete": "您需要完成的任務",
+    "tasksAwaiting": "等待您處理的任務",
+    "quickActions": "快速操作",
+    "commonTasks": "常用任務與捷徑",
+    "browseTemplates": "瀏覽範本",
+    "viewSentTasks": "查看已發送任務",
+    "viewReceivedTasks": "查看已接收任務",
+    "recentActivity": "近期活動",
+    "latestInteractions": "您的最新互動",
+    "retry": "重試"
   }
 }

@@ -1,6 +1,7 @@
 "use client"
 
 import { useContext } from "react"
+import { useTranslations } from 'next-intl'
 import { Link } from "@/i18n/navigation"
 import { Button } from "@/components/ui/button"
 import { Dropdown } from "@/components/ui/dropdown"
@@ -13,6 +14,7 @@ interface UserMenuProps {
 
 export function UserMenu({ onLogout }: UserMenuProps) {
   const user = useContext(UserContext)
+  const t = useTranslations()
 
   return (
     <Dropdown
@@ -38,14 +40,14 @@ export function UserMenu({ onLogout }: UserMenuProps) {
           href="/dashboard/user"
           className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
         >
-          Profile
+          {t('dashboard.userMenu.profile')}
         </Link>
         <button
           onClick={onLogout}
           className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
         >
           <LogOut className="h-4 w-4 mr-2" />
-          Logout
+          {t('dashboard.userMenu.logout')}
         </button>
       </div>
     </Dropdown>

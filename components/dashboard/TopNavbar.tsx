@@ -1,5 +1,6 @@
 "use client"
 
+import { useTranslations } from 'next-intl'
 import { Button } from "@/components/ui/button"
 import { Menu, X } from "lucide-react"
 import { ExternalAppsMenu } from "./ExternalAppsMenu"
@@ -17,6 +18,8 @@ export function TopNavbar({
   onToggleMobileMenu, 
   onLogout 
 }: TopNavbarProps) {
+  const t = useTranslations()
+
   return (
     <div className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 shadow-sm h-16">
       <div className="flex items-center justify-between px-4 py-3 h-full">
@@ -34,7 +37,7 @@ export function TopNavbar({
             </Button>
           </div>
           <div className="md:w-64 md:pr-4">
-            <h1 className="text-xl font-bold text-gray-900">Task Management</h1>
+            <h1 className="text-xl font-bold text-gray-900">{t('dashboard.title')}</h1>
           </div>
         </div>
 

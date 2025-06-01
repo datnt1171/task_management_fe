@@ -1,6 +1,6 @@
 "use client"
 
-import { useLocale } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import { usePathname, useRouter } from "@/i18n/navigation"
 import { Select, SelectItem } from "@/components/ui/select"
 import { languages } from "@/constants/navigation"
@@ -9,6 +9,7 @@ export function LanguageSelector() {
   const locale = useLocale()
   const pathname = usePathname()
   const router = useRouter()
+  const t = useTranslations()
 
   const handleLanguageChange = (newLocale: string) => {
     router.push(pathname, { locale: newLocale })
@@ -24,7 +25,7 @@ export function LanguageSelector() {
         {languages.map((language) => (
           <SelectItem key={language.code} value={language.code}>
             <span className="mr-2">{language.flag}</span>
-            {language.name}
+            {t(language.nameKey)}
           </SelectItem>
         ))}
       </Select>

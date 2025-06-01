@@ -1,5 +1,6 @@
 "use client"
 
+import { useTranslations } from 'next-intl'
 import { Link, usePathname } from "@/i18n/navigation"
 import { navItems } from "@/constants/navigation"
 
@@ -10,6 +11,7 @@ interface NavigationProps {
 
 export function Navigation({ isMobile = false, onItemClick }: NavigationProps) {
   const pathname = usePathname()
+  const t = useTranslations()
 
   return (
     <nav className={`${isMobile ? 'mt-5 px-2' : 'flex-1 px-2'} space-y-1`}>
@@ -29,7 +31,7 @@ export function Navigation({ isMobile = false, onItemClick }: NavigationProps) {
             onClick={onItemClick}
           >
             <IconComponent className="mr-2 h-4 w-4" />
-            {item.label}
+            {t(item.labelKey)}
           </Link>
         )
       })}

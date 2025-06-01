@@ -1,6 +1,7 @@
 "use client"
 
 import type React from "react"
+import { useTranslations } from 'next-intl'
 import { Loader2 } from "lucide-react"
 import { UserContext } from "@/contexts/UserContext"
 import { useAuth } from "@/hooks/useAuth"
@@ -16,11 +17,13 @@ export default function DashboardLayout({
 }) {
   const { user, isLoading, handleLogout } = useAuth()
   const { isMobileMenuOpen, toggleMobileMenu, closeMobileMenu } = useMobileMenu()
+  const t = useTranslations()
 
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <span className="ml-2 text-muted-foreground">{t('dashboard.loading')}</span>
       </div>
     )
   }

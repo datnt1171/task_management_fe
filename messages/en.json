@@ -14,5 +14,47 @@
     "loggingIn": "Logging in...",
     "authError": "Invalid username or password.",
     "footerText": "© TE-1 --- Viet Lien"
+  },
+  "dashboard": {
+    "title": "Task Management",
+    "navigation": {
+      "dashboard": "Dashboard",
+      "formTemplates": "Form Templates",
+      "sentTasks": "Sent Tasks",
+      "receivedTasks": "Received Tasks"
+    },
+    "userMenu": {
+      "profile": "Profile",
+      "logout": "Logout"
+    },
+    "externalApps": {
+      "apps": "Apps",
+      "crmSystem": "CRM System",
+      "hrPortal": "HR Portal",
+      "financeApp": "Finance App",
+      "reports": "Reports"
+    },
+    "languages": {
+      "english": "English",
+      "vietnamese": "Tiếng Việt"
+    },
+    "loading": "Loading...",
+    "welcome": "Welcome to your dashboard.",
+    "formTemplates": "Form Templates",
+    "sentTasks": "Sent Tasks",
+    "receivedTasks": "Received Tasks",
+    "pending": "Pending",
+    "availableTemplates": "Available templates",
+    "tasksSent": "Tasks you have sent",
+    "tasksToComplete": "Tasks you need to complete",
+    "tasksAwaiting": "Tasks awaiting your action",
+    "quickActions": "Quick Actions",
+    "commonTasks": "Common tasks and shortcuts",
+    "browseTemplates": "Browse Templates",
+    "viewSentTasks": "View Sent Tasks",
+    "viewReceivedTasks": "View Received Tasks",
+    "recentActivity": "Recent Activity",
+    "latestInteractions": "Your latest interactions",
+    "retry": "Retry"
   }
 }

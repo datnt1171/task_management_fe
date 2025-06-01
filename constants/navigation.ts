@@ -5,21 +5,24 @@ import {
   Inbox
 } from "lucide-react"
 
+// Navigation items with translation keys
 export const navItems = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/dashboard/forms", label: "Form Templates", icon: FileText },
-  { href: "/dashboard/sent", label: "Sent Tasks", icon: Send },
-  { href: "/dashboard/received", label: "Received Tasks", icon: Inbox },
+  { href: "/dashboard", labelKey: "dashboard.navigation.dashboard", icon: LayoutDashboard },
+  { href: "/dashboard/forms", labelKey: "dashboard.navigation.formTemplates", icon: FileText },
+  { href: "/dashboard/sent", labelKey: "dashboard.navigation.sentTasks", icon: Send },
+  { href: "/dashboard/received", labelKey: "dashboard.navigation.receivedTasks", icon: Inbox },
 ]
 
+// Language options
 export const languages = [
-  { code: 'en', name: 'English', flag: '🇺🇸' },
-  { code: 'vn', name: 'Tiếng Việt', flag: '🇻🇳' }
+  { code: 'en', nameKey: 'dashboard.languages.english', flag: '🇺🇸' },
+  { code: 'vn', nameKey: 'dashboard.languages.vietnamese', flag: '🇻🇳' }
 ]
 
+// External apps with translation keys
 export const externalApps = [
-  { name: 'CRM System', url: 'https://crm.yourcompany.com', icon: '📊' },
-  { name: 'HR Portal', url: 'https://hr.yourcompany.com', icon: '👥' },
-  { name: 'Finance App', url: 'https://finance.yourcompany.com', icon: '💰' },
-  { name: 'Reports', url: 'https://reports.yourcompany.com', icon: '📈' }
+  { nameKey: 'dashboard.externalApps.crmSystem', url: 'https://crm.yourcompany.com', icon: '📊' },
+  { nameKey: 'dashboard.externalApps.hrPortal', url: 'https://hr.yourcompany.com', icon: '👥' },
+  { nameKey: 'dashboard.externalApps.financeApp', url: 'https://finance.yourcompany.com', icon: '💰' },
+  { nameKey: 'dashboard.externalApps.reports', url: 'https://reports.yourcompany.com', icon: '📈' }
 ]

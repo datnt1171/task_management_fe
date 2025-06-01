@@ -1,7 +1,7 @@
 "use client";
 
 import { useContext } from "react";
-import { UserContext } from "../layout";
+import { UserContext } from "@/contexts/UserContext";
 import { UserProfileCard } from "@/components/user-profile-card";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";

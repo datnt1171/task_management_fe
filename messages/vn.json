@@ -1,7 +1,7 @@
 {
   "HomePage": {
-    "title": "xin chaop",
-    "about": "toi trang about"
+    "title": "Xin chào",
+    "about": "Tới trang about"
   },
   "login": {
     "title": "Quản lý công việc",
@@ -14,5 +14,47 @@
     "loggingIn": "Đang đăng nhập...",
     "authError": "Tên đăng nhập hoặc mật khẩu không đúng.",
     "footerText": "© TE-1 --- Viet Lien"
+  },
+  "dashboard": {
+    "title": "Quản lý Nhiệm vụ",
+    "navigation": {
+      "dashboard": "Bảng điều khiển",
+      "formTemplates": "Mẫu biểu mẫu",
+      "sentTasks": "Nhiệm vụ đã gửi",
+      "receivedTasks": "Nhiệm vụ đã nhận"
+    },
+    "userMenu": {
+      "profile": "Hồ sơ",
+      "logout": "Đăng xuất"
+    },
+    "externalApps": {
+      "apps": "Ứng dụng",
+      "crmSystem": "Hệ thống CRM",
+      "hrPortal": "Cổng thông tin HR",
+      "financeApp": "Ứng dụng tài chính",
+      "reports": "Báo cáo"
+    },
+    "languages": {
+      "english": "English",
+      "vietnamese": "Tiếng Việt"
+    },
+    "loading": "Đang tải...",
+    "welcome": "Chào mừng bạn đến với bảng điều khiển.",
+    "formTemplates": "Mẫu biểu mẫu",
+    "sentTasks": "Nhiệm vụ đã gửi",
+    "receivedTasks": "Nhiệm vụ đã nhận",
+    "pending": "Đang chờ xử lý",
+    "availableTemplates": "Mẫu có sẵn",
+    "tasksSent": "Nhiệm vụ bạn đã gửi",
+    "tasksToComplete": "Nhiệm vụ bạn cần hoàn thành",
+    "tasksAwaiting": "Nhiệm vụ đang chờ bạn xử lý",
+    "quickActions": "Hành động nhanh",
+    "commonTasks": "Các tác vụ và phím tắt phổ biến",
+    "browseTemplates": "Xem mẫu biểu mẫu",
+    "viewSentTasks": "Xem nhiệm vụ đã gửi",
+    "viewReceivedTasks": "Xem nhiệm vụ đã nhận",
+    "recentActivity": "Hoạt động gần đây",
+    "latestInteractions": "Tương tác gần nhất của bạn",
+    "retry": "Thử lại"
   }
 }
