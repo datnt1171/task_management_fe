@@ -6,6 +6,7 @@ import { UserProfileCard } from "@/components/user-profile-card";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
 import { useRouter } from "@/i18n/navigation";
+import { ArrowLeft } from "lucide-react"
 
 export default function UserProfilePage() {
   const user = useContext(UserContext);
@@ -15,8 +16,9 @@ export default function UserProfilePage() {
 
   return (
     <div className="p-6 max-w-2xl mx-auto">
-      <div className="flex justify-between mb-4">
+      <div className="flex justify-between items-center mb-4">
         <Button variant="outline" onClick={() => router.back()}>
+          <ArrowLeft className="mr-2 h-4 w-4" />
           Back
         </Button>
         <Button asChild variant="outline">

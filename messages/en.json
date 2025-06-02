@@ -29,10 +29,10 @@
     },
     "externalApps": {
       "apps": "Apps",
-      "crmSystem": "CRM System",
-      "hrPortal": "HR Portal",
-      "financeApp": "Finance App",
-      "reports": "Reports"
+      "crmSystem": "App 1",
+      "hrPortal": "App 1",
+      "financeApp": "App 1",
+      "reports": "Dashboard"
     },
     "languages": {
       "english": "English",

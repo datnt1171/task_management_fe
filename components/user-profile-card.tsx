@@ -1,6 +1,6 @@
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { FiUser, FiMail, FiBriefcase, FiUsers } from "react-icons/fi";
+import { User, Mail, Briefcase, Users } from "lucide-react";
 
 interface UserProfileCardProps {
   user: {
@@ -21,7 +21,7 @@ export function UserProfileCard({ user }: UserProfileCardProps) {
       <CardHeader>
         <div className="flex items-center space-x-4">
           <div className="bg-blue-100 p-3 rounded-full">
-            <FiUser className="w-6 h-6 text-blue-600" />
+            <User className="w-6 h-6 text-blue-600" />
           </div>
           <div>
             <CardTitle>
@@ -34,24 +34,24 @@ export function UserProfileCard({ user }: UserProfileCardProps) {
       <CardContent>
         <div className="space-y-4 mt-4">
           <div className="flex items-center space-x-3">
-            <FiMail className="w-5 h-5 text-gray-500" />
+            <Mail className="w-5 h-5 text-gray-500" />
             <span>{user.email}</span>
           </div>
           <div className="flex items-center space-x-3">
-            <FiBriefcase className="w-5 h-5 text-gray-500" />
+            <Briefcase className="w-5 h-5 text-gray-500" />
             <span>
               Department:{" "}
               <Badge variant="secondary">{user.department?.name || "N/A"}</Badge>
             </span>
           </div>
           <div className="flex items-center space-x-3">
-            <FiUsers className="w-5 h-5 text-gray-500" />
+            <Users className="w-5 h-5 text-gray-500" />
             <span>
               Role: <Badge variant="secondary">{user.role?.name || "N/A"}</Badge>
             </span>
           </div>
           <div className="flex items-center space-x-3">
-            <FiUser className="w-5 h-5 text-gray-500" />
+            <User className="w-5 h-5 text-gray-500" />
             <span>
               Supervisor:{" "}
               {user.supervisor

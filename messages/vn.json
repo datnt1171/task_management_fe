@@ -16,22 +16,22 @@
     "footerText": "© TE-1 --- Viet Lien"
   },
   "dashboard": {
-    "title": "Quản lý Nhiệm vụ",
+    "title": "Task Management",
     "navigation": {
       "dashboard": "Bảng điều khiển",
-      "formTemplates": "Mẫu biểu mẫu",
-      "sentTasks": "Nhiệm vụ đã gửi",
-      "receivedTasks": "Nhiệm vụ đã nhận"
+      "formTemplates": "Biểu mẫu",
+      "sentTasks": "Việc đã gửi",
+      "receivedTasks": "Việc đã nhận"
     },
     "userMenu": {
       "profile": "Hồ sơ",
       "logout": "Đăng xuất"
     },
     "externalApps": {
-      "apps": "Ứng dụng",
-      "crmSystem": "Hệ thống CRM",
-      "hrPortal": "Cổng thông tin HR",
-      "financeApp": "Ứng dụng tài chính",
+      "apps": "Apps",
+      "crmSystem": "App 1",
+      "hrPortal": "App 1",
+      "financeApp": "App 1",
       "reports": "Báo cáo"
     },
     "languages": {

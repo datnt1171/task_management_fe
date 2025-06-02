@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl'
 import { Link } from "@/i18n/navigation"
 import { Button } from "@/components/ui/button"
 import { Dropdown } from "@/components/ui/dropdown"
-import { LogOut, ChevronDown } from "lucide-react"
+import { LogOut, ChevronDown, SquareUserRound } from "lucide-react"
 import { UserContext } from "@/contexts/UserContext"
 
 interface UserMenuProps {
@@ -40,7 +40,10 @@ export function UserMenu({ onLogout }: UserMenuProps) {
           href="/dashboard/user"
           className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
         >
-          {t('dashboard.userMenu.profile')}
+          <span className="flex items-center">
+            <SquareUserRound className="h-4 w-4 mr-2" />
+            {t('dashboard.userMenu.profile')}
+          </span>
         </Link>
         <button
           onClick={onLogout}

@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useRouter } from "@/i18n/navigation";
+import { ArrowLeft } from "lucide-react"
 
 export default function ChangePasswordPage() {
   const [current_password, setCurrentPassword] = useState("");
@@ -43,7 +44,8 @@ export default function ChangePasswordPage() {
   return (
     <div className="p-6 max-w-md mx-auto">
       <div className="mb-4">
-        <Button variant="outline" onClick={() => router.back()}>
+        <Button variant="outline" className="mt-4" onClick={() => router.back()}>
+          <ArrowLeft className="mr-2 h-4 w-4" />
           Back
         </Button>
       </div>
