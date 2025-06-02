@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge"
 import { Search, MoreHorizontal, Loader2 } from "lucide-react"
 import { getReceivedTasks } from "@/lib/api-service"
 import { formatDateToUTC7, getStatusColor } from "@/lib/utils"
+import { useTranslations } from 'next-intl'
 
 interface Task {
   id: number
@@ -28,6 +29,7 @@ export default function ReceivedTasksPage() {
   const [tasks, setTasks] = useState<Task[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const t = useTranslations('dashboard')
 
   useEffect(() => {
     fetchReceivedTasks()
@@ -56,14 +58,14 @@ export default function ReceivedTasksPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Received Tasks</h1>
-        <p className="text-muted-foreground mt-2">View and complete tasks assigned to you</p>
+        <h1 className="text-3xl font-bold tracking-tight">{t('receivedTask.receivedTasks')}</h1>
+        <p className="text-muted-foreground mt-2">{t('receivedTask.receivedTasksDescription')}</p>
       </div>
 
       <div className="flex w-full max-w-sm items-center space-x-2">
         <Input
           type="text"
-          placeholder="Search tasks..."
+          placeholder={t('receivedTask.searchTasksPlaceholder')}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="w-full"
@@ -76,30 +78,30 @@ export default function ReceivedTasksPage() {
       {isLoading ? (
         <div className="flex flex-col items-center justify-center py-12">
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mb-4" />
-          <p className="text-muted-foreground">Loading received tasks...</p>
+          <p className="text-muted-foreground">{t('receivedTask.loadingReceivedTasks')}</p>
         </div>
       ) : error ? (
         <div className="flex flex-col items-center justify-center py-12 text-center">
-          <h3 className="text-lg font-medium text-destructive">Error loading tasks</h3>
+          <h3 className="text-lg font-medium text-destructive">{t('receivedTask.errorLoadingTasks')}</h3>
           <p className="text-muted-foreground mt-2">{error}</p>
           <Button variant="outline" className="mt-4" onClick={fetchReceivedTasks}>
-            Try Again
+            {t('receivedTask.retry')}
           </Button>
         </div>
       ) : (
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle>Your Assigned Tasks</CardTitle>
+            <CardTitle>{t('receivedTask.yourAssignedTasks')}</CardTitle>
           </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Title</TableHead>
-                  <TableHead>From</TableHead>
-                  <TableHead>Form Type</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Created At</TableHead>
+                  <TableHead>{t('receivedTask.id')}</TableHead>
+                  <TableHead>{t('receivedTask.from')}</TableHead>
+                  <TableHead>{t('receivedTask.formType')}</TableHead>
+                  <TableHead>{t('receivedTask.status')}</TableHead>
+                  <TableHead>{t('receivedTask.createdAt')}</TableHead>
                   <TableHead className="w-[50px]"></TableHead>
                 </TableRow>
               </TableHeader>
@@ -124,12 +126,12 @@ export default function ReceivedTasksPage() {
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="icon">
                             <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">Open menu</span>
+                            <span className="sr-only">{t('receivedTask.openMenu')}</span>
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem>
-                            <Link href={`/dashboard/task/${task.id}`}>View Details</Link>
+                            <Link href={`/dashboard/task/${task.id}`}>{t('receivedTask.viewDetails')}</Link>
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -141,8 +143,8 @@ export default function ReceivedTasksPage() {
 
             {filteredTasks.length === 0 && (
               <div className="flex flex-col items-center justify-center py-12 text-center">
-                <h3 className="text-lg font-medium">No tasks found</h3>
-                <p className="text-muted-foreground mt-2">You don't have any tasks assigned to you.</p>
+                <h3 className="text-lg font-medium">{t('receivedTask.noTasksFound')}</h3>
+                <p className="text-muted-foreground mt-2">{t('receivedTask.noAssignedTasks')}</p>
               </div>
             )}
           </CardContent>

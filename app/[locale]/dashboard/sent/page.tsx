@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge"
 import { Search, MoreHorizontal, Plus, Loader2 } from "lucide-react"
 import { getSentTasks } from "@/lib/api-service"
 import { getStatusColor } from "@/lib/utils"
+import { useTranslations } from 'next-intl'
 
 interface Task {
   id: number
@@ -27,6 +28,7 @@ export default function SentTasksPage() {
   const [tasks, setTasks] = useState<Task[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const t = useTranslations('dashboard')
 
   useEffect(() => {
     fetchSentTasks()
@@ -56,13 +58,13 @@ export default function SentTasksPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Sent Tasks</h1>
-          <p className="text-muted-foreground mt-2">View and manage tasks you've sent to others</p>
+          <h1 className="text-3xl font-bold tracking-tight">{t('sentTask.sentTasks')}</h1>
+          <p className="text-muted-foreground mt-2">{t('sentTask.sentTasksDescription')}</p>
         </div>
         <Link href="/dashboard/forms">
           <Button>
             <Plus className="mr-2 h-4 w-4" />
-            Create New Task
+            {t('sentTask.createNewTask')}
           </Button>
         </Link>
       </div>
@@ -70,7 +72,7 @@ export default function SentTasksPage() {
       <div className="flex w-full max-w-sm items-center space-x-2">
         <Input
           type="text"
-          placeholder="Search tasks..."
+          placeholder={t('sentTask.searchTasksPlaceholder')}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="w-full"
@@ -83,30 +85,30 @@ export default function SentTasksPage() {
       {isLoading ? (
         <div className="flex flex-col items-center justify-center py-12">
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mb-4" />
-          <p className="text-muted-foreground">Loading sent tasks...</p>
+          <p className="text-muted-foreground">{t('sentTask.loadingSentTasks')}</p>
         </div>
       ) : error ? (
         <div className="flex flex-col items-center justify-center py-12 text-center">
-          <h3 className="text-lg font-medium text-destructive">Error loading tasks</h3>
+          <h3 className="text-lg font-medium text-destructive">{t('sentTask.errorLoadingTasks')}</h3>
           <p className="text-muted-foreground mt-2">{error}</p>
           <Button variant="outline" className="mt-4" onClick={fetchSentTasks}>
-            Try Again
+            {t('sentTask.retry')}
           </Button>
         </div>
       ) : (
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle>Your Sent Tasks</CardTitle>
+            <CardTitle>{t('sentTask.yourSentTasks')}</CardTitle>
           </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Title</TableHead>
-                  <TableHead>Recipient</TableHead>
-                  <TableHead>Form Type</TableHead>
-                  <TableHead>Sent Date</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead>{t('sentTask.id')}</TableHead>
+                  <TableHead>{t('sentTask.recipient')}</TableHead>
+                  <TableHead>{t('sentTask.formType')}</TableHead>
+                  <TableHead>{t('sentTask.sentDate')}</TableHead>
+                  <TableHead>{t('sentTask.status')}</TableHead>
                   <TableHead className="w-[50px]"></TableHead>
                 </TableRow>
               </TableHeader>
@@ -131,15 +133,15 @@ export default function SentTasksPage() {
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="icon">
                             <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">Open menu</span>
+                            <span className="sr-only">{t('sentTask.openMenu')}</span>
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem>
-                            <Link href={`/dashboard/task/${task.id}`}>View Details</Link>
+                            <Link href={`/dashboard/task/${task.id}`}>{t('sentTask.viewDetails')}</Link>
                           </DropdownMenuItem>
-                          <DropdownMenuItem>Send Reminder</DropdownMenuItem>
-                          <DropdownMenuItem>Duplicate</DropdownMenuItem>
+                          <DropdownMenuItem>{t('sentTask.sendReminder')}</DropdownMenuItem>
+                          <DropdownMenuItem>{t('sentTask.duplicate')}</DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
@@ -150,8 +152,8 @@ export default function SentTasksPage() {
 
             {filteredTasks.length === 0 && (
               <div className="flex flex-col items-center justify-center py-12 text-center">
-                <h3 className="text-lg font-medium">No tasks found</h3>
-                <p className="text-muted-foreground mt-2">Try adjusting your search or create a new task.</p>
+                <h3 className="text-lg font-medium">{t('sentTask.noTasksFound')}</h3>
+                <p className="text-muted-foreground mt-2">{t('sentTask.tryAdjustingSearchOrCreateTask')}</p>
               </div>
             )}
           </CardContent>

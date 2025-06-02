@@ -6,23 +6,27 @@ import { UserProfileCard } from "@/components/user-profile-card";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
 import { useRouter } from "@/i18n/navigation";
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 export default function UserProfilePage() {
   const user = useContext(UserContext);
   const router = useRouter();
+  const t = useTranslations("dashboard");
 
-  if (!user) return <div className="p-6">Loading...</div>;
+  if (!user) return <div className="p-6">{t('user.loading')}</div>;
 
   return (
     <div className="p-6 max-w-2xl mx-auto">
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex justify-between mb-4">
         <Button variant="outline" onClick={() => router.back()}>
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Back
+          {t('user.back')}
         </Button>
         <Button asChild variant="outline">
-          <Link href="/dashboard/user/change-password">Change Password</Link>
+          <Link href="/dashboard/user/change-password">
+            {t('user.changePassword')}
+          </Link>
         </Button>
       </div>
       <UserProfileCard user={user} />

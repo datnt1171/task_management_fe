@@ -21,8 +21,8 @@ export const languages = [
 
 // External apps with translation keys
 export const externalApps = [
-  { nameKey: 'dashboard.externalApps.crmSystem', url: 'https://crm.yourcompany.com', icon: '📊' },
-  { nameKey: 'dashboard.externalApps.hrPortal', url: 'https://hr.yourcompany.com', icon: '👥' },
-  { nameKey: 'dashboard.externalApps.financeApp', url: 'https://finance.yourcompany.com', icon: '💰' },
+  { nameKey: 'dashboard.externalApps.crmSystem', url: 'https://crm.yourcompany.com', icon: '✎' },
+  { nameKey: 'dashboard.externalApps.hrPortal', url: 'https://hr.yourcompany.com', icon: '⌨' },
+  { nameKey: 'dashboard.externalApps.financeApp', url: 'https://finance.yourcompany.com', icon: '▚' },
   { nameKey: 'dashboard.externalApps.reports', url: 'https://reports.yourcompany.com', icon: '📈' }
 ]

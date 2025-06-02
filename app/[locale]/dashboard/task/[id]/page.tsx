@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { ArrowLeft, Calendar, User, Loader2, Clock } from "lucide-react"
 import { getTaskById, performTaskAction } from "@/lib/api-service"
 import { getStatusColor, getActionColor } from "@/lib/utils"
+import { useTranslations } from 'next-intl'
 
 interface TaskData {
   field: {
@@ -70,6 +71,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
   const [actionComment, setActionComment] = useState<string>("")
   const [actionLoading, setActionLoading] = useState<number | null>(null)
   const { id } = use(params)
+  const t = useTranslations('dashboard')
   useEffect(() => {
     fetchTaskData()
   }, [id])
@@ -81,7 +83,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
       setTask(response.data)
     } catch (err: any) {
       console.error("Error fetching task:", err)
-      setError(err.response?.data?.error || "Failed to load task details")
+      setError(err.response?.data?.error || t('taskDetail.failedToLoadTaskDetails'))
     } finally {
       setIsLoading(false)
     }
@@ -92,12 +94,12 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
     setActionLoading(actionId)
     try {
       await performTaskAction(task.id, { action_id: actionId, comment: actionComment || undefined })
-      alert(`Action performed successfully!`)
+      alert(t('taskDetail.actionPerformedSuccessfully'))
       setActionComment("") // Clear the comment after successful action
       fetchTaskData() // Refresh task data after action
     } catch (err: any) {
       console.error("Error performing action:", err)
-      alert(err.response?.data?.error || "Failed to perform action")
+      alert(err.response?.data?.error || t('taskDetail.failedToPerformAction'))
     } finally {
       setActionLoading(null)
     }
@@ -107,7 +109,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
     return (
       <div className="flex flex-col items-center justify-center py-12">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mb-4" />
-        <p className="text-muted-foreground">Loading task details...</p>
+        <p className="text-muted-foreground">{t('taskDetail.loadingTaskDetails')}</p>
       </div>
     )
   }
@@ -115,12 +117,12 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
   if (error || !task) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
-        <h3 className="text-lg font-medium">Task not found</h3>
-        <p className="text-muted-foreground mt-2">{error || "The requested task does not exist."}</p>
+        <h3 className="text-lg font-medium">{t('taskDetail.taskNotFound')}</h3>
+        <p className="text-muted-foreground mt-2">{error || t('taskDetail.requestedTaskDoesNotExist')}</p>
         <Link href="/dashboard">
           <Button variant="outline" className="mt-4">
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Dashboard
+            {t('taskDetail.backToDashboard')}
           </Button>
         </Link>
       </div>
@@ -148,14 +150,14 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
         <div className="md:col-span-2 space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Task Details</CardTitle>
+              <CardTitle>{t('taskDetail.taskDetails')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               {task.data.map((data) => (
                 <div key={data.field.id} className="space-y-2">
                   <label className="text-sm font-medium">{data.field.name}</label>
                   <div className="p-3 bg-muted rounded-md">
-                    {data.value || <span className="text-muted-foreground italic">No response provided</span>}
+                    {data.value || <span className="text-muted-foreground italic">{t('taskDetail.noResponseProvided')}</span>}
                   </div>
                 </div>
               ))}
@@ -164,7 +166,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
 
           <Card>
             <CardHeader>
-              <CardTitle>Activity History</CardTitle>
+              <CardTitle>{t('taskDetail.activityHistory')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -179,7 +181,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
                         <span className="text-muted-foreground">{log.action.description || log.action.name}</span>
                       </p>
                       {log.comment && (
-                        <p className="text-xs text-muted-foreground">Comment: {log.comment}</p>
+                        <p className="text-xs text-muted-foreground">{t('taskDetail.comment')}: {log.comment}</p>
                       )}
                       <p className="text-xs text-muted-foreground">{new Date(log.created_at).toLocaleString()}</p>
                     </div>
@@ -188,7 +190,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
 
                 {(!task.action_logs || task.action_logs.length === 0) && (
                   <div className="text-center text-muted-foreground">
-                    <p>No activity recorded yet</p>
+                    <p>{t('taskDetail.noActivityRecorded')}</p>
                   </div>
                 )}
               </div>
@@ -199,13 +201,13 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Task Information</CardTitle>
+              <CardTitle>{t('taskDetail.taskInformation')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center">
                 <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
                 <div>
-                  <p className="text-sm font-medium">Created On</p>
+                  <p className="text-sm font-medium">{t('taskDetail.createdOn')}</p>
                   <p className="text-sm text-muted-foreground">{new Date(task.created_at).toLocaleDateString()}</p>
                 </div>
               </div>
@@ -213,7 +215,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
               <div className="flex items-center">
                 <User className="h-4 w-4 mr-2 text-muted-foreground" />
                 <div>
-                  <p className="text-sm font-medium">Created By</p>
+                  <p className="text-sm font-medium">{t('taskDetail.createdBy')}</p>
                   <p className="text-sm text-muted-foreground">{task.created_by.username}</p>
                 </div>
               </div>
@@ -222,14 +224,14 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
 
           <Card>
             <CardHeader>
-              <CardTitle>Available Actions</CardTitle>
+              <CardTitle>{t('taskDetail.availableActions')}</CardTitle>
             </CardHeader>
             <CardContent>
               {task.available_actions.length > 0 ? (
                 <>
                   <textarea
                     className="w-full p-2 border rounded-md mb-2"
-                    placeholder="Add a comment (optional)..."
+                    placeholder={t('taskDetail.addCommentOptional')}
                     value={actionComment}
                     onChange={(e) => setActionComment(e.target.value)}
                   />
@@ -244,7 +246,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
                       {actionLoading === action.id ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Processing...
+                          {t('taskDetail.processing')}
                         </>
                       ) : (
                         action.type
@@ -253,7 +255,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
                   ))}
                 </>
               ) : (
-                <p className="text-sm text-muted-foreground">No actions available for this task.</p>
+                <p className="text-sm text-muted-foreground">{t('taskDetail.noActionsAvailable')}</p>
               )}
             </CardContent>
           </Card>

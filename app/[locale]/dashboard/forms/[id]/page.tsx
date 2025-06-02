@@ -12,6 +12,7 @@ import { Assignee, AssigneeTrigger, AssigneeValue, AssigneeContent, AssigneeItem
 import { Checkbox } from "@/components/ui/checkbox"
 import { ArrowLeft, Send, Loader2, Eye } from "lucide-react"
 import { getProcessById, getUsers, createTask } from "@/lib/api-service"
+import { useTranslations } from 'next-intl'
 
 interface Field {
   id: number
@@ -46,6 +47,7 @@ export default function FormPage({ params }: { params: Promise<{ id: string }> }
   const [formValues, setFormValues] = useState<Record<string, any>>({})
   const [showReview, setShowReview] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const t = useTranslations('dashboard')
 
   useEffect(() => {
     async function fetchData() {
@@ -84,7 +86,7 @@ export default function FormPage({ params }: { params: Promise<{ id: string }> }
       .map((field) => field.name)
 
     if (missingFields && missingFields.length > 0) {
-      alert(`Please fill in the following required fields: ${missingFields.join(", ")}`)
+      alert(t('createTask.pleaseFillRequiredFields', { fields: missingFields.join(", ") }))
       return
     }
 
@@ -106,11 +108,11 @@ export default function FormPage({ params }: { params: Promise<{ id: string }> }
       // Submit the task
       const response = await createTask(taskData)
 
-      alert("Task created successfully!")
+      alert(t('createTask.taskCreatedSuccessfully'))
       router.push("/dashboard/sent")
     } catch (err: any) {
       console.error("Error creating task:", err)
-      alert(err.response?.data?.error || "Failed to create task")
+      alert(err.response?.data?.error || t('createTask.failedToCreateTask'))
     } finally {
       setIsSubmitting(false)
     }
@@ -126,9 +128,8 @@ export default function FormPage({ params }: { params: Promise<{ id: string }> }
             disabled={showReview}
           >
             <AssigneeTrigger>
-              {/* Add formatDisplay to convert ID to username */}
               <AssigneeValue 
-                placeholder="Select a user"
+                placeholder={t('createTask.selectUser')}
                 formatDisplay={(value) => {
                   const user = users.find(u => u.id.toString() === value);
                   return user 
@@ -216,7 +217,7 @@ export default function FormPage({ params }: { params: Promise<{ id: string }> }
               htmlFor={`field-${field.id}`}
               className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
             >
-              Yes
+              {t('createTask.yes')}
             </label>
           </div>
         )
@@ -238,14 +239,14 @@ export default function FormPage({ params }: { params: Promise<{ id: string }> }
   // Helper function to display field value in review mode
   const displayFieldValue = (field: Field) => {
     if (!formValues[field.id]) {
-      return <span className="text-muted-foreground italic">No value provided</span>
+      return <span className="text-muted-foreground italic">{t('createTask.noValueProvided')}</span>
     }
 
     switch (field.field_type) {
       case "assignee":
         return users.find((u) => u.id.toString() === formValues[field.id])?.username || formValues[field.id]
       case "checkbox":
-        return formValues[field.id] ? "Yes" : "No"
+        return formValues[field.id] ? t('createTask.yes') : t('createTask.no')
       default:
         return formValues[field.id]
     }
@@ -255,7 +256,7 @@ export default function FormPage({ params }: { params: Promise<{ id: string }> }
     return (
       <div className="flex flex-col items-center justify-center py-12">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mb-4" />
-        <p className="text-muted-foreground">Loading form template...</p>
+        <p className="text-muted-foreground">{t('createTask.loadingFormTemplate')}</p>
       </div>
     )
   }
@@ -263,12 +264,12 @@ export default function FormPage({ params }: { params: Promise<{ id: string }> }
   if (error || !process) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
-        <h3 className="text-lg font-medium">Template not found</h3>
-        <p className="text-muted-foreground mt-2">{error || "The requested form template does not exist."}</p>
+        <h3 className="text-lg font-medium">{t('createTask.templateNotFound')}</h3>
+        <p className="text-muted-foreground mt-2">{error || t('createTask.requestedFormTemplateNotExist')}</p>
         <Link href="/dashboard/forms">
           <Button variant="outline" className="mt-4">
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Templates
+            {t('createTask.backToTemplates')}
           </Button>
         </Link>
       </div>
@@ -291,11 +292,9 @@ export default function FormPage({ params }: { params: Promise<{ id: string }> }
       {showReview ? (
         <Card>
           <CardHeader>
-            <CardTitle>Review Task</CardTitle>
+            <CardTitle>{t('createTask.reviewTask')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-
-            {/* Use process.fields directly */}
             {process.fields.map((field) => (
               <div key={field.id} className="space-y-2">
                 <Label>
@@ -309,18 +308,18 @@ export default function FormPage({ params }: { params: Promise<{ id: string }> }
           <CardFooter className="flex justify-between">
             <Button variant="outline" onClick={() => setShowReview(false)} disabled={isSubmitting}>
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Edit
+              {t('createTask.backToEdit')}
             </Button>
             <Button onClick={handleSubmit} disabled={isSubmitting}>
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Submitting...
+                  {t('createTask.submitting')}
                 </>
               ) : (
                 <>
                   <Send className="mr-2 h-4 w-4" />
-                  Submit Task
+                  {t('createTask.submitTask')}
                 </>
               )}
             </Button>
@@ -329,12 +328,10 @@ export default function FormPage({ params }: { params: Promise<{ id: string }> }
       ) : (
         <Card>
           <CardHeader>
-            <CardTitle>Create Task</CardTitle>
+            <CardTitle>{t('createTask.createTask')}</CardTitle>
           </CardHeader>
           <form onSubmit={handleReview}>
             <CardContent className="space-y-4">
-
-              {/* Use process.fields directly */}
               {process.fields.map((field) => (
                 <div key={field.id} className="space-y-2">
                   <Label htmlFor={`field-${field.id}`}>
@@ -349,7 +346,7 @@ export default function FormPage({ params }: { params: Promise<{ id: string }> }
               <div className="space-x-2">
                 <Button type="submit">
                   <Eye className="mr-2 h-4 w-4" />
-                  Review
+                  {t('createTask.review')}
                 </Button>
               </div>
             </CardFooter>

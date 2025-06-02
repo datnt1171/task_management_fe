@@ -36,7 +36,7 @@ export function TopNavbar({
               {isMobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
             </Button>
           </div>
-          <div className="md:w-64 md:pr-4">
+          <div className="hidden md:block md:w-64 md:pr-4">
             <h1 className="text-xl font-bold text-gray-900">{t('dashboard.title')}</h1>
           </div>
         </div>
