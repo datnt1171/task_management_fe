@@ -22,14 +22,14 @@ export function formatDateToUTC7(dateString: string) {
 
 export const getStatusColor = (stateType: string) => {
   switch (stateType) {
-    case "pending approve":
+    case "pending_approve":
       return "bg-yellow-100 text-yellow-800";
     case "analyze":
       return "bg-blue-100 text-blue-800";
     case "working":
-      return "bg-indigo-100 text-indigo-800";
-    case "pending review":
-      return "bg-purple-100 text-purple-800";
+      return "bg-blue-100 text-blue-800";
+    case "pending_review":
+      return "bg-orange-100 text-orange-800";
     case "start":
       return "bg-gray-100 text-gray-800";
     case "denied":
@@ -50,15 +50,13 @@ export const getActionColor = (actionType: string) => {
     case "reject":
       return "bg-red-100 text-red-800";
     case "complete":
-      return "bg-purple-100 text-purple-800";
+      return "bg-blue-100 text-blue-800";
     case "confirm":
-      return "bg-yellow-100 text-yellow-800";
+      return "bg-green-100 text-green-800";
     case "close":
       return "bg-gray-100 text-gray-800";
     case "cancel":
-      return "bg-orange-100 text-orange-800";
-    case "initial":
-      return "bg-teal-100 text-teal-800";
+      return "bg-red-100 text-red-800";
     default:
       return "bg-gray-100 text-gray-800";
   }

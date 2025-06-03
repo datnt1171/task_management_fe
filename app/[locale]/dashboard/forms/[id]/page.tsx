@@ -96,13 +96,13 @@ export default function FormPage({ params }: { params: Promise<{ id: string }> }
   const handleSubmit = async () => {
     setIsSubmitting(true)
     try {
-      // Format the data for the API
+      // Format the data for the API: include all fields, even if value is empty
       const taskData = {
         process: process?.id,
-        fields: Object.entries(formValues).map(([key, value]) => ({
-          field_id: key,
-          value: value,
-        })),
+        fields: process?.fields.map((field) => ({
+          field_id: field.id,
+          value: formValues[field.id] ?? "",
+        })) || [],
       }
 
       // Submit the task
@@ -222,11 +222,60 @@ export default function FormPage({ params }: { params: Promise<{ id: string }> }
           </div>
         )
       case "file":
+        const allowedExtensions = ['jpg', 'jpeg', 'png', 'pdf', 'doc', 'docx', 'xls', 'xlsx'];
+        const acceptAttribute = allowedExtensions.map(ext => {
+          switch(ext) {
+            case 'jpg':
+            case 'jpeg': return 'image/jpeg';
+            case 'png': return 'image/png';
+            case 'pdf': return 'application/pdf';
+            case 'doc': return 'application/msword';
+            case 'docx': return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+            case 'xls': return 'application/vnd.ms-excel';
+            case 'xlsx': return 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+            default: return '';
+          }
+        }).join(',');
+
+        interface FileInfo {
+          file: File;
+          fileName: string;
+          fileSize: number;
+          fileType: string;
+        }
+
+        const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+          const file = e.target.files?.[0];
+          if (!file) {
+            handleInputChange(field.id, null);
+            return;
+          }
+
+          // Validate file extension
+          const fileExtension = file.name.split('.').pop()?.toLowerCase();
+          if (!fileExtension || !allowedExtensions.includes(fileExtension)) {
+            alert(`Invalid file type. Please select a file with one of these extensions: ${allowedExtensions.join(', ')}`);
+            e.target.value = ''; // Clear the input
+            handleInputChange(field.id, null);
+            return;
+          }
+
+          // Send the actual file object to handleInputChange
+          // You might want to also send additional file info
+          handleInputChange(field.id, {
+            file: file,
+            fileName: file.name,
+            fileSize: file.size,
+            fileType: file.type
+          } as FileInfo);
+        };
+
         return (
           <Input
             id={`field-${field.id}`}
             type="file"
-            onChange={(e) => handleInputChange(field.id, e.target.files?.[0]?.name || "")}
+            accept={acceptAttribute}
+            onChange={handleFileChange}
             required={field.required}
             disabled={showReview}
           />

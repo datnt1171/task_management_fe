@@ -9,6 +9,22 @@ const config: Config = {
     "./src/**/*.{ts,tsx}",
     "*.{js,ts,jsx,tsx,mdx}",
   ],
+  safelist: [
+    "bg-yellow-100",
+    "text-yellow-800",
+    "bg-indigo-100",
+    "text-indigo-800",
+    "bg-purple-100",
+    "text-purple-800",
+    "bg-green-100",
+    "text-green-800",
+    "bg-orange-100",
+    "text-orange-800",
+    "bg-teal-100",
+    "text-teal-800",
+    "bg-orange-100",
+    "text-orange-800",
+  ],
   theme: {
     container: {
       center: true,
