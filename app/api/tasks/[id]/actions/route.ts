@@ -16,20 +16,36 @@ export async function POST(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const body = await request.json()
+    let body: any
+    let headers: any = {
+      Authorization: `Bearer ${token}`,
+    }
 
-    const response = await axios.post(
-      `${process.env.API_URL}/api/tasks/${id}/action/`,
-      body,
-      {
+    // Detect content type
+    const contentType = request.headers.get("content-type") || ""
+
+    if (contentType.includes("multipart/form-data")) {
+      const formData = await request.formData()
+      const fetchRes = await fetch(`${process.env.API_URL}/api/tasks/${id}/action/`, {
+        method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
         },
-      }
-    )
-
-    return NextResponse.json(response.data)
+        body: formData,
+      })
+      const data = await fetchRes.json()
+      return NextResponse.json(data, { status: fetchRes.status })
+    } else {
+      // Handle JSON
+      body = await request.json()
+      headers["Content-Type"] = "application/json"
+      const response = await axios.post(
+        `${process.env.API_URL}/api/tasks/${id}/action/`,
+        body,
+        { headers }
+      )
+      return NextResponse.json(response.data)
+    }
   } catch (error: any) {
     console.error("Error performing task action:", error.response?.data || error.message)
     return NextResponse.json(

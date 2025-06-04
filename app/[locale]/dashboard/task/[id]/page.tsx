@@ -10,6 +10,7 @@ import { ArrowLeft, Calendar, User, Loader2, Clock } from "lucide-react"
 import { getTaskById, performTaskAction } from "@/lib/api-service"
 import { getStatusColor, getActionColor } from "@/lib/utils"
 import { useTranslations } from 'next-intl'
+import { Input } from "@/components/ui/input"
 
 interface TaskData {
   field: {
@@ -70,6 +71,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
   const [error, setError] = useState<string | null>(null)
   const [actionComment, setActionComment] = useState<string>("")
   const [actionLoading, setActionLoading] = useState<number | null>(null)
+  const [actionFile, setActionFile] = useState<File | null>(null)
   const { id } = use(params)
   const t = useTranslations('dashboard')
   useEffect(() => {
@@ -93,10 +95,24 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
     if (!task) return
     setActionLoading(actionId)
     try {
-      await performTaskAction(task.id, { action_id: actionId, comment: actionComment || undefined })
+      let payload: any = { action_id: actionId }
+      if (actionComment) payload.comment = actionComment
+
+      // If file is selected, use FormData
+      if (actionFile) {
+        const formData = new FormData()
+        formData.append("action_id", actionId.toString())
+        if (actionComment) formData.append("comment", actionComment)
+        formData.append("file", actionFile)
+        await performTaskAction(task.id, formData, true)
+      } else {
+        await performTaskAction(task.id, payload)
+      }
+
       alert(t('taskDetail.actionPerformedSuccessfully'))
-      setActionComment("") // Clear the comment after successful action
-      fetchTaskData() // Refresh task data after action
+      setActionComment("")
+      setActionFile(null)
+      fetchTaskData()
     } catch (err: any) {
       console.error("Error performing action:", err)
       alert(err.response?.data?.error || t('taskDetail.failedToPerformAction'))
@@ -229,6 +245,13 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
             <CardContent>
               {task.available_actions.length > 0 ? (
                 <>
+                  {/* File uploader */}
+                  <Input
+                    type="file"
+                    className="mb-2"
+                    onChange={e => setActionFile(e.target.files?.[0] || null)}
+                    disabled={actionLoading !== null}
+                  />
                   <textarea
                     className="w-full p-2 border rounded-md mb-2"
                     placeholder={t('taskDetail.addCommentOptional')}
