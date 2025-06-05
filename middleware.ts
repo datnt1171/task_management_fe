@@ -17,7 +17,7 @@ export function middleware(request: NextRequest) {
   const potentialLocale = segments[1];
 
   // Check if the pathname starts with a valid locale
-  if (routing.locales.includes(potentialLocale as 'en' | 'vn' | 'cn')) {
+  if (routing.locales.includes(potentialLocale as 'en' | 'vi' | 'zh-hant')) {
     const locale = potentialLocale;
 
     // Calculate path without locale (e.g., "/en/login" → "/login")

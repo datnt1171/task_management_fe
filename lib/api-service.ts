@@ -5,9 +5,59 @@ const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api",
   headers: {
     "Content-Type": "application/json",
+
   },
   withCredentials: true, // Important for cookies
 })
+
+// Function to get current locale from URL or localStorage
+const getCurrentLocale = (): string => {
+  if (typeof window !== "undefined") {
+    // Extract locale from current pathname
+    const pathname = window.location.pathname
+    const segments = pathname.split('/')
+    const potentialLocale = segments[1]
+
+    // Define your supported locales
+    const supportedLocales = ['en', 'vi', 'zh-hant']
+    
+    if (supportedLocales.includes(potentialLocale)) {
+      return potentialLocale
+    }
+    
+    // Fallback to stored locale or default
+    return localStorage.getItem('locale') || 'en'
+  }
+  
+  return 'en' // Server-side fallback
+}
+
+// Function to convert locale to Accept-Language format
+const getAcceptLanguage = (locale: string): string => {
+  const localeMap: { [key: string]: string } = {
+    'en': 'en-US,en;q=0.9',
+    'vi': 'vi-VN,vi;q=0.9,en;q=0.8',
+    'zh-hant': 'zh-TW,zh;q=0.9,en;q=0.8'
+  }
+
+  return localeMap[locale] || 'en-US,en;q=0.9'
+}
+
+// Add request interceptor to automatically include Accept-Language
+api.interceptors.request.use(
+  (config) => {
+    const locale = getCurrentLocale()
+    const acceptLanguage = getAcceptLanguage(locale)
+    
+    // Add Accept-Language header to all requests
+    config.headers['Accept-Language'] = acceptLanguage
+    
+    return config
+  },
+  (error) => {
+    return Promise.reject(error)
+  }
+)
 
 // Track if a token refresh is in progress
 let isRefreshing = false
@@ -21,7 +71,7 @@ const processQueue = (error: any, token: string | null = null) => {
       prom.resolve()
     }
   })
-
+  
   failedQueue = []
 }
 
@@ -30,16 +80,16 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config
-
+    
     if (error.response?.status === 401 && !originalRequest._retry) {
       if (
-          originalRequest.url?.includes('/auth/login') || 
-          originalRequest.url?.includes('/auth/refresh') ||
-          originalRequest.url?.includes('/auth/logout')
-        ) {
-          return Promise.reject(error)
-        }
-
+        originalRequest.url?.includes('/auth/login') || 
+        originalRequest.url?.includes('/auth/refresh') ||
+        originalRequest.url?.includes('/auth/logout')
+      ) {
+        return Promise.reject(error)
+      }
+      
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject })
@@ -47,10 +97,10 @@ api.interceptors.response.use(
           .then(() => api(originalRequest))
           .catch((err) => Promise.reject(err))
       }
-
+      
       originalRequest._retry = true
       isRefreshing = true
-
+      
       try {
         const refreshResponse = await api.get("/auth/refresh")
         if (!refreshResponse.data.success) {

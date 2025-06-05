@@ -36,7 +36,8 @@
     },
     "languages": {
       "english": "English",
-      "vietnamese": "Tiếng Việt"
+      "vietnamese": "Tiếng Việt",
+      "chineseTraditional": "繁體中文"
     },
     "loading": "載入中...",
     "welcome": "歡迎來到您的儀表板。",

@@ -36,7 +36,8 @@
     },
     "languages": {
       "english": "English",
-      "vietnamese": "Tiếng Việt"
+      "vietnamese": "Tiếng Việt",
+      "chineseTraditional": "繁體中文"
     },
     "loading": "Đang tải...",
     "welcome": "Chào mừng bạn đến với bảng điều khiển.",

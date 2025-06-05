@@ -16,7 +16,8 @@ export const navItems = [
 // Language options
 export const languages = [
   { code: 'en', nameKey: 'dashboard.languages.english', flag: '🇺🇸' },
-  { code: 'vn', nameKey: 'dashboard.languages.vietnamese', flag: '🇻🇳' }
+  { code: 'vi', nameKey: 'dashboard.languages.vietnamese', flag: '🇻🇳' },
+  { code: 'zh-hant', nameKey: 'dashboard.languages.chineseTraditional', flag: '🇨🇳' }
 ]
 
 // External apps with translation keys

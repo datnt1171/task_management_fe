@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { cookies } from "next/headers"
+import { cookies, headers } from "next/headers"
 import axios from "axios"
 
 export async function GET() {
@@ -11,10 +11,14 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    const headersList = await headers()
+    const acceptLanguage = headersList.get("accept-language") || "en-US,en;q=0.9"
+
     const response = await axios.get(`${process.env.API_URL}/api/tasks/sent/`, {
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
+        "Accept-Language": acceptLanguage,
       },
     })
 
