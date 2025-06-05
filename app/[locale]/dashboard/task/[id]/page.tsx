@@ -35,6 +35,7 @@ interface ActionLog {
   }
   created_at: string
   comment: string
+  file?: string // <-- add file field
 }
 
 interface Task {
@@ -199,6 +200,14 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
                       {log.comment && (
                         <p className="text-xs text-muted-foreground">{t('taskDetail.comment')}: {log.comment}</p>
                       )}
+                      {/* Show file link if present */}
+                      {log.file && (
+                        <p className="text-xs text-blue-600 mt-1">
+                          <a href={log.file} target="_blank" rel="noopener noreferrer" className="underline">
+                            {log.file.split('/').pop()}
+                          </a>
+                        </p>
+                      )}
                       <p className="text-xs text-muted-foreground">{new Date(log.created_at).toLocaleString()}</p>
                     </div>
                   </div>
@@ -249,6 +258,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
                   <Input
                     type="file"
                     className="mb-2"
+                    accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.xls,.xlsx"
                     onChange={e => setActionFile(e.target.files?.[0] || null)}
                     disabled={actionLoading !== null}
                   />
