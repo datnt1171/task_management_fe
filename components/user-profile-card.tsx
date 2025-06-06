@@ -4,14 +4,14 @@ import { User, Mail, Briefcase, Users } from "lucide-react";
 
 interface UserProfileCardProps {
   user: {
-    id: number;
+    id: string;
     username: string;
     first_name: string;
     last_name: string;
     email: string;
-    department?: { id: number; name: string };
-    role?: { id: number; name: string };
-    supervisor?: { id: number; username: string; first_name: string; last_name: string };
+    department?: { id: string; name: string };
+    role?: { id: string; name: string };
+    supervisor?: { id: string; username: string; first_name: string; last_name: string };
   };
 }
 

@@ -3,21 +3,21 @@
 import { createContext } from "react"
 
 export interface User {
-  id: number
+  id: string
   username: string
   first_name: string
   last_name: string
   email: string
   department?: {
-    id: number
+    id: string
     name: string
   }
   role?: {
-    id: number
+    id: string
     name: string
   }
   supervisor?: {
-    id: number
+    id: string
     username: string
     first_name: string
     last_name: string

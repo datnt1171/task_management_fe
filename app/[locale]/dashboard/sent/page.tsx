@@ -14,7 +14,7 @@ import { getStatusColor } from "@/lib/utils"
 import { useTranslations } from 'next-intl'
 
 interface Task {
-  id: number
+  id: string
   title: string
   process: string
   state: string

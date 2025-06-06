@@ -10,12 +10,12 @@ import { FileText, Plus, Search, Loader2 } from "lucide-react"
 import { getProcesses } from "@/lib/api-service"
 
 interface Process {
-  id: number
+  id: string
   name: string
   description: string
   version: number
   fields: Array<{
-    id: number
+    id: string
     name: string
     field_type: string
     order: number

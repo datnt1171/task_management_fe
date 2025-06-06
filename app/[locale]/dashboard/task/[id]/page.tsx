@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input"
 
 interface TaskData {
   field: {
-    id: number
+    id: string
     name: string
     type: string
   }
@@ -22,13 +22,13 @@ interface TaskData {
 }
 
 interface ActionLog {
-  id: number
+  id: string
   user: {
-    id: number
+    id: string
     username: string
   }
   action: {
-    id: number
+    id: string
     name: string
     description: string
     type: string
@@ -39,26 +39,26 @@ interface ActionLog {
 }
 
 interface Task {
-  id: number
+  id: string
   title: string
   process: {
-    id: number
+    id: string
     name: string
   }
   state: {
-    id: number
+    id: string
     name: string
     type: string
   }
   created_by: {
-    id: number
+    id: string
     username: string
   }
   created_at: string
   data: Array<TaskData>
   action_logs: Array<ActionLog>
   available_actions: Array<{
-    id: number
+    id: string
     name: string
     description: string
     type: string
@@ -71,7 +71,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [actionComment, setActionComment] = useState<string>("")
-  const [actionLoading, setActionLoading] = useState<number | null>(null)
+  const [actionLoading, setActionLoading] = useState<string | null>(null)
   const [actionFile, setActionFile] = useState<File | null>(null)
   const { id } = use(params)
   const t = useTranslations('dashboard')
@@ -92,17 +92,17 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
     }
   }
 
-  const handleActionClick = async (actionId: number) => {
+  const handleActionClick = async (actionid: string) => {
     if (!task) return
-    setActionLoading(actionId)
+    setActionLoading(actionid)
     try {
-      let payload: any = { action_id: actionId }
+      let payload: any = { action_id: actionid }
       if (actionComment) payload.comment = actionComment
 
       // If file is selected, use FormData
       if (actionFile) {
         const formData = new FormData()
-        formData.append("action_id", actionId.toString())
+        formData.append("action_id", actionid)
         if (actionComment) formData.append("comment", actionComment)
         formData.append("file", actionFile)
         await performTaskAction(task.id, formData, true)

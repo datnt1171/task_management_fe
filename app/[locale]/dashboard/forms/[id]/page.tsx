@@ -15,7 +15,7 @@ import { getProcessById, getUsers, createTask } from "@/lib/api-service"
 import { useTranslations } from 'next-intl'
 
 interface Field {
-  id: number
+  id: string
   name: string
   field_type: string
   order: number
@@ -24,14 +24,14 @@ interface Field {
 }
 
 interface Process {
-  id: number
+  id: string
   name: string
   description: string
   fields: Field[]
 }
 
 interface User {
-  id: number
+  id: string
   username: string
   first_name?: string
   last_name?: string
@@ -53,12 +53,9 @@ export default function FormPage({ params }: { params: Promise<{ id: string }> }
     async function fetchData() {
       setIsLoading(true)
       try {
-        // Fetch process and users in parallel
         const [processResponse, usersResponse] = await Promise.all([getProcessById(id), getUsers()])
-        const processData = processResponse.data
-
-        setProcess(processData)
-        setUsers(usersResponse.data || []) // Correctly set the users state
+        setProcess(processResponse.data)
+        setUsers(usersResponse.data || [])
       } catch (err: any) {
         console.error("Error fetching data:", err)
         setError(err.response?.data?.error || "Failed to load form data")
@@ -66,11 +63,10 @@ export default function FormPage({ params }: { params: Promise<{ id: string }> }
         setIsLoading(false)
       }
     }
-
     fetchData()
   }, [id])
 
-  const handleInputChange = (fieldId: number, value: any) => {
+  const handleInputChange = (fieldId: string, value: any) => {
     setFormValues({
       ...formValues,
       [fieldId]: value,
@@ -79,48 +75,51 @@ export default function FormPage({ params }: { params: Promise<{ id: string }> }
 
   const handleReview = (e: React.FormEvent) => {
     e.preventDefault()
-
-    // Validate required fields
     const missingFields = process?.fields
-      .filter((field) => field.required && !formValues[field.id])
-      .map((field) => field.name)
-
-    if (missingFields && missingFields.length > 0) {
+      .filter(field => field.required && !formValues[field.id])
+      .map(field => field.name)
+    if (missingFields?.length) {
       alert(t('createTask.pleaseFillRequiredFields', { fields: missingFields.join(", ") }))
       return
     }
-
     setShowReview(true)
   }
 
   const handleSubmit = async () => {
-    setIsSubmitting(true)
-    try {
-      // Format the data for the API: include all fields, even if value is empty
-      const taskData = {
-        process: process?.id,
-        fields: process?.fields.map((field) => ({
-          field_id: field.id,
-          value: formValues[field.id] ?? "",
-        })) || [],
+  setIsSubmitting(true);
+
+  try {
+    const formData = new FormData();
+    formData.append("process", String(process?.id));
+
+    process?.fields.forEach((field, index) => {
+      // Always append the field_id
+      formData.append(`fields[${index}][field_id]`, String(field.id));
+
+      const value = formValues[field.id];
+      if (field.field_type === "file" && value instanceof File) {
+        // For a file field, append under fields[index][file]
+        formData.append(`fields[${index}][file]`, value);
+      } else {
+        // Otherwise, append under fields[index][value]
+        formData.append(`fields[${index}][value]`, value ?? "");
       }
+    });
 
-      // Submit the task
-      const response = await createTask(taskData)
-
-      alert(t('createTask.taskCreatedSuccessfully'))
-      router.push("/dashboard/sent")
-    } catch (err: any) {
-      console.error("Error creating task:", err)
-      alert(err.response?.data?.error || t('createTask.failedToCreateTask'))
-    } finally {
-      setIsSubmitting(false)
-    }
+    await createTask(formData);
+    alert(t("createTask.taskCreatedSuccessfully"));
+    router.push("/dashboard/sent");
+  } catch (err: any) {
+    console.error("Error creating task:", err.response?.data || err.message);
+    alert(err.response?.data?.error || t("createTask.failedToCreateTask"));
+  } finally {
+    setIsSubmitting(false);
   }
+};
 
   const renderField = (field: Field) => {
     switch (field.field_type) {
-      case "assignee": {
+      case "assignee":
         return (
           <Assignee
             value={formValues[field.id] || ""}
@@ -128,52 +127,30 @@ export default function FormPage({ params }: { params: Promise<{ id: string }> }
             disabled={showReview}
           >
             <AssigneeTrigger>
-              <AssigneeValue 
+              <AssigneeValue
                 placeholder={t('createTask.selectUser')}
                 formatDisplay={(value) => {
-                  const user = users.find(u => u.id.toString() === value);
-                  return user 
-                    ? `${user.first_name} ${user.last_name} (${user.username})` 
-                    : value;
+                  const user = users.find(u => u.id.toString() === value)
+                  return user ? `${user.first_name} ${user.last_name} (${user.username})` : value
                 }}
               />
             </AssigneeTrigger>
             <AssigneeContent>
-              {users.map((user) => (
+              {users.map(user => (
                 <AssigneeItem key={user.id} value={user.id.toString()}>
                   {user.first_name} {user.last_name} ({user.username})
                 </AssigneeItem>
               ))}
             </AssigneeContent>
           </Assignee>
-        );
-      }
+        )
       case "text":
-        return (
-          <Input
-            id={`field-${field.id}`}
-            value={formValues[field.id] || ""}
-            onChange={(e) => handleInputChange(field.id, e.target.value)}
-            required={field.required}
-            disabled={showReview}
-          />
-        )
       case "number":
-        return (
-          <Input
-            id={`field-${field.id}`}
-            type="number"
-            value={formValues[field.id] || ""}
-            onChange={(e) => handleInputChange(field.id, e.target.value)}
-            required={field.required}
-            disabled={showReview}
-          />
-        )
       case "date":
         return (
           <Input
             id={`field-${field.id}`}
-            type="date"
+            type={field.field_type === "number" ? "number" : field.field_type === "date" ? "date" : "text"}
             value={formValues[field.id] || ""}
             onChange={(e) => handleInputChange(field.id, e.target.value)}
             required={field.required}
@@ -197,7 +174,7 @@ export default function FormPage({ params }: { params: Promise<{ id: string }> }
             onValueChange={(value) => handleInputChange(field.id, value)}
             disabled={showReview}
           >
-            {(field.options || []).map((option: string) => (
+            {(field.options || []).map(option => (
               <SelectItem key={option} value={option}>
                 {option}
               </SelectItem>
@@ -222,60 +199,11 @@ export default function FormPage({ params }: { params: Promise<{ id: string }> }
           </div>
         )
       case "file":
-        const allowedExtensions = ['jpg', 'jpeg', 'png', 'pdf', 'doc', 'docx', 'xls', 'xlsx'];
-        const acceptAttribute = allowedExtensions.map(ext => {
-          switch(ext) {
-            case 'jpg':
-            case 'jpeg': return 'image/jpeg';
-            case 'png': return 'image/png';
-            case 'pdf': return 'application/pdf';
-            case 'doc': return 'application/msword';
-            case 'docx': return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
-            case 'xls': return 'application/vnd.ms-excel';
-            case 'xlsx': return 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
-            default: return '';
-          }
-        }).join(',');
-
-        interface FileInfo {
-          file: File;
-          fileName: string;
-          fileSize: number;
-          fileType: string;
-        }
-
-        const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-          const file = e.target.files?.[0];
-          if (!file) {
-            handleInputChange(field.id, null);
-            return;
-          }
-
-          // Validate file extension
-          const fileExtension = file.name.split('.').pop()?.toLowerCase();
-          if (!fileExtension || !allowedExtensions.includes(fileExtension)) {
-            alert(`Invalid file type. Please select a file with one of these extensions: ${allowedExtensions.join(', ')}`);
-            e.target.value = ''; // Clear the input
-            handleInputChange(field.id, null);
-            return;
-          }
-
-          // Send the actual file object to handleInputChange
-          // You might want to also send additional file info
-          handleInputChange(field.id, {
-            file: file,
-            fileName: file.name,
-            fileSize: file.size,
-            fileType: file.type
-          } as FileInfo);
-        };
-
         return (
           <Input
             id={`field-${field.id}`}
             type="file"
-            accept={acceptAttribute}
-            onChange={handleFileChange}
+            onChange={(e) => handleInputChange(field.id, e.target.files?.[0])}
             required={field.required}
             disabled={showReview}
           />
@@ -285,20 +213,20 @@ export default function FormPage({ params }: { params: Promise<{ id: string }> }
     }
   }
 
-  // Helper function to display field value in review mode
   const displayFieldValue = (field: Field) => {
     if (!formValues[field.id]) {
       return <span className="text-muted-foreground italic">{t('createTask.noValueProvided')}</span>
     }
-
-    switch (field.field_type) {
-      case "assignee":
-        return users.find((u) => u.id.toString() === formValues[field.id])?.username || formValues[field.id]
-      case "checkbox":
-        return formValues[field.id] ? t('createTask.yes') : t('createTask.no')
-      default:
-        return formValues[field.id]
+    if (field.field_type === "assignee") {
+      return users.find(u => u.id.toString() === formValues[field.id])?.username || formValues[field.id]
     }
+    if (field.field_type === "checkbox") {
+      return formValues[field.id] ? t('createTask.yes') : t('createTask.no')
+    }
+    if (field.field_type === "file" && formValues[field.id] instanceof File) {
+      return formValues[field.id].name
+    }
+    return formValues[field.id]
   }
 
   if (isLoading) {
@@ -344,7 +272,7 @@ export default function FormPage({ params }: { params: Promise<{ id: string }> }
             <CardTitle>{t('createTask.reviewTask')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {process.fields.map((field) => (
+            {process.fields.map(field => (
               <div key={field.id} className="space-y-2">
                 <Label>
                   {field.name}
@@ -392,12 +320,10 @@ export default function FormPage({ params }: { params: Promise<{ id: string }> }
               ))}
             </CardContent>
             <CardFooter className="flex justify-between">
-              <div className="space-x-2">
-                <Button type="submit">
-                  <Eye className="mr-2 h-4 w-4" />
-                  {t('createTask.review')}
-                </Button>
-              </div>
+              <Button type="submit">
+                <Eye className="mr-2 h-4 w-4" />
+                {t('createTask.review')}
+              </Button>
             </CardFooter>
           </form>
         </Card>
