@@ -145,12 +145,42 @@ export default function FormPage({ params }: { params: Promise<{ id: string }> }
           </Assignee>
         )
       case "text":
+        return (
+          <Input
+            id={`field-${field.id}`}
+            type="text"
+            value={formValues[field.id] || ""}
+            onChange={(e) => handleInputChange(field.id, e.target.value)}
+            required={field.required}
+            disabled={showReview}
+          />
+        )
+
       case "number":
+        return (
+          <Input
+            id={`field-${field.id}`}
+            type="number"
+            min="1"
+            step="1"
+            value={formValues[field.id] || ""}
+            onChange={(e) => {
+              const value = e.target.value;
+              // Only allow positive integers
+              if (value === "" || (Number.isInteger(Number(value)) && Number(value) > 0)) {
+                handleInputChange(field.id, value);
+              }
+            }}
+            required={field.required}
+            disabled={showReview}
+          />
+        )
+
       case "date":
         return (
           <Input
             id={`field-${field.id}`}
-            type={field.field_type === "number" ? "number" : field.field_type === "date" ? "date" : "text"}
+            type="date"
             value={formValues[field.id] || ""}
             onChange={(e) => handleInputChange(field.id, e.target.value)}
             required={field.required}
@@ -203,7 +233,26 @@ export default function FormPage({ params }: { params: Promise<{ id: string }> }
           <Input
             id={`field-${field.id}`}
             type="file"
-            onChange={(e) => handleInputChange(field.id, e.target.files?.[0])}
+            accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.xls,.xlsx"
+            onChange={e => {
+              const file = e.target.files?.[0];
+              if (file) {
+                const allowedTypes = [
+                  "image/jpeg", "image/png", "application/pdf",
+                  "application/msword", // .doc
+                  "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // .docx
+                  "application/vnd.ms-excel", // .xls
+                  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" // .xlsx
+                ];
+                if (!allowedTypes.includes(file.type)) {
+                  alert("Invalid file type. Please select a valid file.");
+                  e.target.value = "";
+                  handleInputChange(field.id, undefined);
+                  return;
+                }
+              }
+              handleInputChange(field.id, file);
+            }}
             required={field.required}
             disabled={showReview}
           />

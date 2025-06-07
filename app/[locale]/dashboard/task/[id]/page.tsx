@@ -259,7 +259,25 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
                     type="file"
                     className="mb-2"
                     accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.xls,.xlsx"
-                    onChange={e => setActionFile(e.target.files?.[0] || null)}
+                    onChange={e => {
+                      const file = e.target.files?.[0] || null;
+                      if (file) {
+                        const allowedTypes = [
+                          "image/jpeg", "image/png", "application/pdf",
+                          "application/msword", // .doc
+                          "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // .docx
+                          "application/vnd.ms-excel", // .xls
+                          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" // .xlsx
+                        ];
+                        if (!allowedTypes.includes(file.type)) {
+                          alert("Invalid file type. Please select a valid file.");
+                          e.target.value = ""; // Reset file input
+                          setActionFile(null);
+                          return;
+                        }
+                      }
+                      setActionFile(file);
+                    }}
                     disabled={actionLoading !== null}
                   />
                   <textarea

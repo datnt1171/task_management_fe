@@ -22,8 +22,12 @@ const config: Config = {
     "text-orange-800",
     "bg-teal-100",
     "text-teal-800",
-    "bg-orange-100",
-    "text-orange-800",
+    "bg-blue-100",
+    "text-blue-800",
+    "bg-red-100",
+    "text-red-800",
+    "bg-gray-100",
+    "text-gray-800",
   ],
   theme: {
     container: {
