@@ -21,7 +21,8 @@
       "dashboard": "Dashboard",
       "formTemplates": "Form Templates",
       "sentTasks": "Sent Tasks",
-      "receivedTasks": "Received Tasks"
+      "receivedTasks": "Received Tasks",
+      "SPR": "All Sample Request"
     },
     "userMenu": {
       "profile": "Profile",

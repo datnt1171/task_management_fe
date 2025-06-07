@@ -163,4 +163,5 @@ export const performTaskAction = (
     isFormData ? { headers: { "Content-Type": "multipart/form-data" } } : undefined
   )
 
+export const getSPRReport = () => api.get("/tasks/spr-report/")
 export default api

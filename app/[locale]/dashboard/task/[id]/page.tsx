@@ -18,7 +18,11 @@ interface TaskData {
     name: string
     type: string
   }
-  value: string
+  value: string | null
+  files: Array<{
+    original_filename: string
+    uploaded_file: string
+  }>
 }
 
 interface ActionLog {
@@ -173,8 +177,27 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
               {task.data.map((data) => (
                 <div key={data.field.id} className="space-y-2">
                   <label className="text-sm font-medium">{data.field.name}</label>
-                  <div className="p-3 bg-muted rounded-md">
-                    {data.value || <span className="text-muted-foreground italic">{t('taskDetail.noResponseProvided')}</span>}
+                  <div className="p-3 bg-muted rounded-md space-y-1">
+                    {data.field.type === "file" ? (
+                      data.files && data.files.length > 0 ? (
+                        data.files.map((file, index) => (
+                          <p key={index}>
+                            <a
+                              href={file.uploaded_file}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-600 underline"
+                            >
+                              {file.original_filename}
+                            </a>
+                          </p>
+                        ))
+                      ) : (
+                        <span className="text-muted-foreground italic">{t('taskDetail.noFileUploaded')}</span>
+                      )
+                    ) : (
+                      data.value || <span className="text-muted-foreground italic">{t('taskDetail.noResponseProvided')}</span>
+                    )}
                   </div>
                 </div>
               ))}

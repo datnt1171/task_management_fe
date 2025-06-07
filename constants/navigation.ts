@@ -2,7 +2,8 @@ import {
   LayoutDashboard, 
   FileText, 
   Send, 
-  Inbox
+  Inbox,
+  Table
 } from "lucide-react"
 
 // Navigation items with translation keys
@@ -11,6 +12,7 @@ export const navItems = [
   { href: "/dashboard/forms", labelKey: "dashboard.navigation.formTemplates", icon: FileText },
   { href: "/dashboard/sent", labelKey: "dashboard.navigation.sentTasks", icon: Send },
   { href: "/dashboard/received", labelKey: "dashboard.navigation.receivedTasks", icon: Inbox },
+  { href: "/dashboard/spr-report", labelKey: "dashboard.navigation.SPR", icon: Table },
 ]
 
 // Language options
