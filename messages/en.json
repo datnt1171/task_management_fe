@@ -163,6 +163,22 @@
       "passwordChangedSuccess": "Password changed successfully.",
       "passwordChangeFailed": "Failed to change password. Please check your input.",
       "changing": "Changing..."
+    },
+    "sprReport": {
+      "title": "Title",
+      "createdAt": "Created At",
+      "username": "Username",
+      "state": "State",
+      "customerName": "Customer's Name",
+      "finishingCode": "Finishing Code",
+      "customerColorName": "Customer's Color Name",
+      "collection": "Collection",
+      "quantity": "Quantity",
+      "deadline": "Deadline",
+      "loading": "Loading report...",
+      "failedToLoad": "Failed to load report",
+      "noData": "No report data available.",
+      "viewTask": "View Task"
     }
   }
 }

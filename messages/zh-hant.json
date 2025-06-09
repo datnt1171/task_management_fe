@@ -21,7 +21,8 @@
       "dashboard": "儀表板",
       "formTemplates": "表單範本",
       "sentTasks": "已發送任務",
-      "receivedTasks": "已接收任務"
+      "receivedTasks": "已接收任務",
+      "SPR": "樣本表格"
     },
     "userMenu": {
       "profile": "個人資料",
@@ -162,6 +163,22 @@
       "passwordChangedSuccess": "密碼變更成功。",
       "passwordChangeFailed": "密碼變更失敗。請檢查您的輸入。",
       "changing": "正在變更..."
+    },
+    "sprReport": {
+      "title": "標題",
+      "createdAt": "建立日期",
+      "username": "建立者",
+      "state": "狀態",
+      "customerName": "客戶名稱",
+      "finishingCode": "完成代碼",
+      "customerColorName": "客戶色號",
+      "collection": "系列",
+      "quantity": "數量",
+      "deadline": "截止日期",
+      "loading": "正在載入報表...",
+      "failedToLoad": "無法載入報表",
+      "noData": "沒有報表資料。",
+      "viewTask": "檢視任務"
     }
   }
 }

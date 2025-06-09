@@ -21,7 +21,8 @@
       "dashboard": "Bảng điều khiển",
       "formTemplates": "Biểu mẫu",
       "sentTasks": "Phiếu đã gửi",
-      "receivedTasks": "Phiếu đã nhận"
+      "receivedTasks": "Phiếu đã nhận",
+      "SPR": "Phiếu mẫu"
     },
     "userMenu": {
       "profile": "Hồ sơ",
@@ -162,6 +163,22 @@
       "passwordChangedSuccess": "Đổi mật khẩu thành công.",
       "passwordChangeFailed": "Đổi mật khẩu thất bại. Vui lòng kiểm tra lại thông tin.",
       "changing": "Đang thay đổi..."
+    },
+    "sprReport": {
+      "title": "Tiêu đề",
+      "createdAt": "Ngày tạo",
+      "username": "Người tạo",
+      "state": "Trạng thái",
+      "customerName": "Tên khách hàng",
+      "finishingCode": "Mã hoàn thiện",
+      "customerColorName": "Tên màu khách hàng",
+      "collection": "Bộ sưu tập",
+      "quantity": "Số lượng",
+      "deadline": "Hạn chót",
+      "loading": "Đang tải báo cáo...",
+      "failedToLoad": "Không thể tải báo cáo",
+      "noData": "Không có dữ liệu báo cáo.",
+      "viewTask": "Xem phiếu"
     }
   }
 }

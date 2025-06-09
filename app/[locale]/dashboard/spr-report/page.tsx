@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { getStatusColor } from "@/lib/utils"
+import { useTranslations } from "next-intl"
 
 interface SPRReportRow {
   task_id: string
@@ -28,6 +29,7 @@ export default function SPRReportPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
+  const t = useTranslations('dashboard')
 
   useEffect(() => {
     const fetchData = async () => {
@@ -48,7 +50,7 @@ export default function SPRReportPage() {
     return (
       <div className="flex flex-col items-center justify-center py-12">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mb-4" />
-        <p className="text-muted-foreground">Loading report...</p>
+        <p className="text-muted-foreground">{t('sprReport.loading')}</p>
       </div>
     )
   }
@@ -56,7 +58,7 @@ export default function SPRReportPage() {
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
-        <h3 className="text-lg font-medium">Failed to load report</h3>
+        <h3 className="text-lg font-medium">{t('sprReport.failedToLoad')}</h3>
         <p className="text-muted-foreground mt-2">{error}</p>
       </div>
     )
@@ -65,7 +67,7 @@ export default function SPRReportPage() {
   if (!data.length) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
-        <p className="text-muted-foreground">No report data available.</p>
+        <p className="text-muted-foreground">{t('sprReport.noData')}</p>
       </div>
     )
   }
@@ -76,17 +78,17 @@ export default function SPRReportPage() {
         <TableHeader>
           <TableRow className="bg-gray-50">
             {/* <TableHead>Task ID</TableHead> */}
-            <TableHead className="font-semibold text-gray-700">Title</TableHead>
-            <TableHead className="font-semibold text-gray-700">Created At</TableHead>
-            <TableHead className="font-semibold text-gray-700">Username</TableHead>
+            <TableHead className="font-semibold text-gray-700">{t('sprReport.title')}</TableHead>
+            <TableHead className="font-semibold text-gray-700">{t('sprReport.createdAt')}</TableHead>
+            <TableHead className="font-semibold text-gray-700">{t('sprReport.username')}</TableHead>
             {/* <TableHead>User ID</TableHead> */}
-            <TableHead className="font-semibold text-gray-700">State</TableHead>
-            <TableHead className="font-semibold text-gray-700">Customer's Name</TableHead>
-            <TableHead className="font-semibold text-gray-700">Finishing code</TableHead>
-            <TableHead className="font-semibold text-gray-700">Customer's color name</TableHead>
-            <TableHead className="font-semibold text-gray-700">Collection</TableHead>
-            <TableHead className="font-semibold text-gray-700">requirement</TableHead>
-            <TableHead className="font-semibold text-gray-700">Deadline</TableHead>
+            <TableHead className="font-semibold text-gray-700">{t('sprReport.state')}</TableHead>
+            <TableHead className="font-semibold text-gray-700">{t('sprReport.customerName')}</TableHead>
+            <TableHead className="font-semibold text-gray-700">{t('sprReport.finishingCode')}</TableHead>
+            <TableHead className="font-semibold text-gray-700">{t('sprReport.customerColorName')}</TableHead>
+            <TableHead className="font-semibold text-gray-700">{t('sprReport.collection')}</TableHead>
+            <TableHead className="font-semibold text-gray-700">{t('sprReport.quantity')}</TableHead>
+            <TableHead className="font-semibold text-gray-700">{t('sprReport.deadline')}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -99,7 +101,7 @@ export default function SPRReportPage() {
               <TableCell
                 className="text-blue-600 underline cursor-pointer font-medium"
                 onClick={() => router.push(`/dashboard/task/${row.task_id}`)}
-                title="View Task"
+                title={t('sprReport.viewTask')}
               >
                 {row.title}
               </TableCell>
